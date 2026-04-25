@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "BeautyBook - Beauty Service Booking",
+  title: "LastMinute - Beauty Service Booking",
   description: "Book last-minute and up-to-one-week-ahead beauty and cosmetic services",
 };
 

@@ -29,7 +29,7 @@ export default function LandingPage() {
       >
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <h1 style={{ fontSize: 36, marginBottom: 12, color: colors.textPrimary }}>
-            BeautyBook
+            LastMinute
           </h1>
           <p style={{ fontSize: 16, color: colors.textMuted }}>
             Your beauty services, on demand

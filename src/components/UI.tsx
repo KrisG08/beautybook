@@ -17,7 +17,6 @@ import {
   Clock,
   MapPin,
   ChevronRight,
-  MapPins,
   Sparkles,
   Heart,
   Palette,

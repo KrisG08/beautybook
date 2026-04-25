@@ -84,10 +84,10 @@ export interface Category {
 }
 
 export const CATEGORIES: Category[] = [
-  { id: 'hair', name: 'Hair', icon: 'Scissors', color: '#E8B4B8' },
-  { id: 'nails', name: 'Nails', icon: 'Hand', color: '#C9A87C' },
-  { id: 'skin', name: 'Skin', icon: 'Sparkles', color: '#F5E6E8' },
-  { id: 'massage', name: 'Massage', icon: 'Heart', color: '#7CB98B' },
-  { id: 'makeup', name: 'Makeup', icon: 'Palette', color: '#E57373' },
-  { id: 'brows', name: 'Brows', icon: 'Eye', color: '#FFB74D' },
+  { id: 'hair', name: 'Hair', icon: 'Scissors', color: '#FFD600' },
+  { id: 'nails', name: 'Nails', icon: 'Hand', color: '#FF6B9D' },
+  { id: 'skin', name: 'Skin', icon: 'Sparkles', color: '#C8E6FF' },
+  { id: 'massage', name: 'Massage', icon: 'Heart', color: '#B9F6CA' },
+  { id: 'makeup', name: 'Makeup', icon: 'Palette', color: '#FFAB91' },
+  { id: 'brows', name: 'Brows', icon: 'Eye', color: '#CE93D8' },
 ];

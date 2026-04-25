@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "LastMinute - Beauty Service Booking",
-  description: "Book last-minute and up-to-one-week-ahead beauty and cosmetic services",
+  title: "LastMinute - Book beauty in seconds",
+  description: "Last-minute beauty appointments. Book in 60 seconds. Available now.",
 };
 
 export default function RootLayout({

@@ -2,41 +2,57 @@
 
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { User, Store, Shield, ChevronRight } from 'lucide-react';
+import { User, Store, Shield, ChevronRight, Zap, Flame } from 'lucide-react';
 
 const colors = {
-  primary: '#E8B4B8',
+  primary: '#FFD600',
+  primaryDark: '#FFC107',
   surface: '#FFFFFF',
-  textPrimary: '#2D2A2A',
-  textMuted: '#9A9595',
+  textPrimary: '#111111',
+  textMuted: '#999999',
 };
 
 export default function LandingPage() {
   const router = useRouter();
 
   const roles = [
-    { id: 'client', label: 'Client', icon: User, description: 'Book beauty services' },
-    { id: 'business', label: 'Business', icon: Store, description: 'Offer your services' },
+    { id: 'client', label: 'Client', icon: User, description: 'Book in 60 seconds' },
+    { id: 'business', label: 'Business', icon: Store, description: 'Get more bookings' },
     { id: 'admin', label: 'Admin', icon: Shield, description: 'Manage platform' },
   ];
 
   return (
-    <div style={{ minHeight: '100vh', padding: '60px 16px 40px', background: '#FFFBFA' }}>
+    <div style={{ minHeight: '100vh', padding: '80px 16px 40px', background: '#FFFFFF' }}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <h1 style={{ fontSize: 36, marginBottom: 12, color: colors.textPrimary }}>
-            LastMinute
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 8, 
+          marginBottom: 12,
+          padding: '8px 16px',
+          background: '#111111',
+          borderRadius: 20,
+          width: 'fit-content'
+        }}>
+          <Flame size={16} fill={colors.primary} stroke={colors.primary} />
+          <span style={{ color: colors.primary, fontWeight: 700, fontSize: 14 }}>LastMinute</span>
+        </div>
+
+        <div style={{ textAlign: 'left', marginBottom: 32 }}>
+          <h1 style={{ fontSize: 42, marginBottom: 8, color: colors.textPrimary, fontWeight: 800, lineHeight: 1.1 }}>
+            Book beauty<br />
+            <span style={{ color: colors.primary }}>in seconds</span>
           </h1>
           <p style={{ fontSize: 16, color: colors.textMuted }}>
-            Your beauty services, on demand
+            Available now. Near you.
           </p>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {roles.map((role, index) => (
             <motion.div
               key={role.id}
@@ -47,38 +63,59 @@ export default function LandingPage() {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 20,
-                padding: 24,
+                gap: 16,
+                padding: 20,
                 background: colors.surface,
-                borderRadius: 16,
+                borderRadius: 18,
                 cursor: 'pointer',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
+                border: '2px solid #F5F5F5',
               }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
             >
               <div style={{
-                width: 56,
-                height: 56,
+                width: 52,
+                height: 52,
                 borderRadius: 16,
                 background: colors.primary,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
-                <role.icon size={28} color="#fff" />
+                <role.icon size={26} color="#111111" />
               </div>
               <div style={{ flex: 1 }}>
-                <h3 style={{ fontSize: 18, marginBottom: 4, color: colors.textPrimary }}>
+                <h3 style={{ fontSize: 17, marginBottom: 2, color: colors.textPrimary, fontWeight: 700 }}>
                   {role.label}
                 </h3>
-                <p style={{ fontSize: 14, color: colors.textMuted }}>
+                <p style={{ fontSize: 13, color: colors.textMuted }}>
                   {role.description}
                 </p>
               </div>
               <ChevronRight size={20} color={colors.textMuted} />
             </motion.div>
           ))}
+        </div>
+
+        <div style={{ 
+          marginTop: 40, 
+          padding: 20, 
+          background: '#111111', 
+          borderRadius: 20,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}>
+          <div>
+            <p style={{ color: 'white', fontWeight: 700, fontSize: 15, marginBottom: 4 }}>
+              ⚡ Last available slots
+            </p>
+            <p style={{ color: colors.textMuted, fontSize: 13 }}>
+              Book before they're gone
+            </p>
+          </div>
+          <Zap size={28} fill={colors.primary} stroke={colors.primary} />
         </div>
       </motion.div>
     </div>

@@ -2,18 +2,18 @@
 
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { Search, MapPin, Clock, Zap, Flame, TrendingUp } from 'lucide-react';
+import { Search, Zap, Clock, TrendingUp } from 'lucide-react';
 import { ClientBottomNav, CategoryCard, BusinessCard } from '@/components/UI';
 import { useStore } from '@/lib/store';
 import { CATEGORIES } from '@/lib/types';
 
 const colors = {
   primary: '#FFD600',
-  secondary: '#FFF8E1',
-  surface: '#FFFFFF',
-  textPrimary: '#111111',
-  textSecondary: '#666666',
-  textMuted: '#999999',
+  surface: '#FFF7E0',
+  background: '#FFFDF5',
+  textPrimary: '#2A241C',
+  textSecondary: '#6B6358',
+  textMuted: '#9A9595',
 };
 
 export default function ClientHome() {
@@ -23,71 +23,54 @@ export default function ClientHome() {
   const approvedBusinesses = businesses.filter(b => b.status === 'approved').slice(0, 6);
 
   return (
-    <div className="container" style={{ paddingBottom: 80 }}>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        {/* Header */}
-        <div style={{ padding: '16px 0 20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 6, 
-              padding: '6px 12px',
-              background: '#111111',
-              borderRadius: 16,
-            }}>
-              <Flame size={14} fill={colors.primary} stroke={colors.primary} />
-              <span style={{ color: colors.primary, fontWeight: 700, fontSize: 13 }}>LastMinute</span>
-            </div>
+    <div style={{ background: colors.background, minHeight: '100vh', paddingBottom: 80 }}>
+      {/* Hero */}
+      <div className="hero">
+        <div style={{ padding: '16px 0' }}>
+          <div style={{ 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            gap: 8, 
+            background: '#2A241C',
+            padding: '8px 16px',
+            borderRadius: 20,
+            marginBottom: 20
+          }}>
+            <Zap size={14} fill={colors.primary} stroke={colors.primary} />
+            <span style={{ color: colors.primary, fontWeight: 700, fontSize: 13 }}>LastMinute</span>
           </div>
 
-          <h1 style={{ fontSize: 28, marginBottom: 8, color: colors.textPrimary, fontWeight: 800 }}>
-            Find <span style={{ color: colors.primary }}>available</span> now
+          <h1 style={{ fontSize: 28, fontFamily: 'Playfair Display, serif', marginBottom: 8, fontWeight: 800 }}>
+            Find <span style={{ color: colors.primary, textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>available</span> now
           </h1>
           
-          {/* Search Bar */}
-          <div
-            onClick={() => router.push('/client/search')}
-            className="search-bar"
-          >
+          <div className="search-bar" onClick={() => router.push('/client/search')} style={{ cursor: 'pointer' }}>
             <Search size={20} stroke={colors.textMuted} />
             <span style={{ color: colors.textMuted, fontSize: 15 }}>Search services...</span>
           </div>
         </div>
+      </div>
 
-        {/* Quick Filters */}
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 8 }}>
-            <div 
-              className="filter-chip active"
-              onClick={() => router.push('/client/search')}
-            >
-              ⚡ Available Now
+      {/* Content */}
+      <div style={{ padding: '24px 20px', maxWidth: 430, margin: '0 auto' }}>
+        {/* Filters */}
+        <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 16 }}>
+          <div className="filter-chip active">⚡ Available Now</div>
+          {CATEGORIES.slice(0, 4).map((cat) => (
+            <div key={cat.id} className="filter-chip" onClick={() => router.push('/client/search')}>
+              {cat.name}
             </div>
-            {CATEGORIES.slice(0, 4).map((cat) => (
-              <div 
-                key={cat.id}
-                className="filter-chip"
-                onClick={() => router.push('/client/search')}
-              >
-                {cat.name}
-              </div>
-            ))}
-          </div>
+          ))}
         </div>
 
-        {/* Urgency Tags */}
+        {/* Urgency Banner */}
         <div style={{ 
           display: 'flex', 
           gap: 12, 
           marginBottom: 24,
-          padding: '12px 16px',
-          background: '#111111',
-          borderRadius: 16,
+          padding: 14,
+          background: '#2A241C',
+          borderRadius: 20,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Zap size={16} fill={colors.primary} stroke={colors.primary} />
@@ -100,16 +83,11 @@ export default function ClientHome() {
         </div>
 
         {/* Categories */}
-        <h2 style={{ fontSize: 18, marginBottom: 14, color: colors.textPrimary, fontWeight: 700 }}>
+        <h2 style={{ fontSize: 18, fontFamily: 'Playfair Display, serif', marginBottom: 14, fontWeight: 700 }}>
           Browse by service
         </h2>
         
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(3, 1fr)', 
-          gap: 12, 
-          marginBottom: 28 
-        }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 28 }}>
           {CATEGORIES.map((category, index) => (
             <motion.div
               key={category.id}
@@ -127,13 +105,13 @@ export default function ClientHome() {
 
         {/* Popular */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-          <h2 style={{ fontSize: 18, color: colors.textPrimary, fontWeight: 700 }}>
+          <h2 style={{ fontSize: 18, fontFamily: 'Playfair Display, serif', fontWeight: 700 }}>
             🔥 Popular right now
           </h2>
           <TrendingUp size={18} stroke={colors.primary} />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {approvedBusinesses.map((business, index) => (
             <motion.div
               key={business.id}
@@ -157,19 +135,19 @@ export default function ClientHome() {
             marginTop: 24,
             padding: 24,
             background: colors.primary,
-            borderRadius: 20,
+            borderRadius: 24,
             textAlign: 'center',
             cursor: 'pointer',
           }}
         >
-          <p style={{ fontSize: 18, fontWeight: 800, color: '#111111' }}>
+          <p style={{ fontSize: 18, fontWeight: 800, fontFamily: 'Playfair Display, serif', color: colors.textPrimary }}>
             ⚡ Book in 60 seconds
           </p>
-          <p style={{ fontSize: 14, color: '#666666', marginTop: 4 }}>
+          <p style={{ fontSize: 14, color: colors.textSecondary, marginTop: 4 }}>
             Tap to find available appointments
           </p>
         </motion.div>
-      </motion.div>
+      </div>
 
       <ClientBottomNav active="home" />
     </div>

@@ -35,6 +35,7 @@ interface AppState {
   approveBusiness: (businessId: string) => void;
   rejectBusiness: (businessId: string) => void;
   addTimeSlot: (slot: Omit<TimeSlot, 'id'>) => void;
+  updateBookingStatus: (bookingId: string, status: 'confirmed' | 'completed' | 'cancelled') => void;
   createBooking: (userId: string, businessId: string, serviceId: string, slotId: string) => Booking;
   addReview: (review: Omit<Review, 'id' | 'createdAt'>) => void;
   getAvailableSlots: (businessId: string, date: string) => TimeSlot[];
@@ -350,6 +351,10 @@ export const useStore = create<AppState>((set, get) => ({
       timeSlots: state.timeSlots.map(s => s.id === slotId ? { ...s, available: false } : s),
     }));
     return booking;
+  },
+  
+  updateBookingStatus: (bookingId, status) => {
+    set((state) => ({ bookings: state.bookings.map(b => b.id === bookingId ? { ...b, status } : b) }));
   },
   
   addReview: (review) => {

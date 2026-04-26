@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { User, Store, Shield, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { registerUser, loginUser } from '@/lib/actions';
@@ -19,107 +18,18 @@ const COLORS = {
   error: '#DC2626',
 };
 
-export default function AuthPage() {
-  const router = useRouter();
-  const { user, login: setAuthUser } = useAuth();
-  
-  // Individual state for each field - avoids object reference issues
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
-  const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState<'client' | 'business' | 'admin'>('client');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [mounted, setMounted] = useState(false);
-  
-  // Individual form fields
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [phone, setPhone] = useState('');
-  const [businessName, setBusinessName] = useState('');
-  const [contactPerson, setContactPerson] = useState('');
-  const [address, setAddress] = useState('');
-  const [category, setCategory] = useState('hair');
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Stable callback - doesn't recreate on render
-  const handleRoleSelect = useCallback((selectedRole: 'client' | 'business' | 'admin') => {
-    setRole(selectedRole);
-    if (mode === 'signup') {
-      setName('');
-      setBusinessName('');
-      setContactPerson('');
-      setAddress('');
-      setCategory('hair');
-    }
-  }, [mode]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    if (mode === 'signup') {
-      if (role === 'business') {
-        if (!businessName || !contactPerson || !address) {
-          setError('Please fill in all required business fields');
-          setLoading(false);
-          return;
-        }
-      }
-      if (role === 'admin') {
-        if (password !== 'admin123') {
-          setError('Invalid admin code');
-          setLoading(false);
-          return;
-        }
-      }
-      
-      const result = await registerUser(
-        role === 'business' ? businessName : name || 'User',
-        email,
-        password,
-        phone,
-        role,
-        businessName,
-        contactPerson,
-        address,
-        category
-      );
-      
-      if (result.error) {
-        setError(result.error);
-        setLoading(false);
-        return;
-      }
-      
-      if (result.user) {
-        setAuthUser(result.user);
-        if (role === 'business') {
-          router.push('/business/apply');
-        } else {
-          router.push(role === 'admin' ? '/admin' : '/client');
-        }
-      }
-    } else {
-      const result = await loginUser(email, password);
-      if (result.error) {
-        setError(result.error);
-        setLoading(false);
-        return;
-      }
-      if (result.user) {
-        setAuthUser(result.user);
-        router.push(result.user.role === 'admin' ? '/admin' : result.user.role === 'business' ? '/business' : '/client');
-      }
-    }
-    setLoading(false);
-  };
-
-const BusinessFields = () => (
+function BusinessFields({ 
+  businessName, setBusinessName, 
+  contactPerson, setContactPerson, 
+  address, setAddress, 
+  category, setCategory 
+}: {
+  businessName: string; setBusinessName: (v: string) => void;
+  contactPerson: string; setContactPerson: (v: string) => void;
+  address: string; setAddress: (v: string) => void;
+  category: string; setCategory: (v: string) => void;
+}) {
+  return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div>
         <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Business Name *</label>
@@ -165,14 +75,95 @@ const BusinessFields = () => (
       </div>
     </div>
   );
+}
 
-  const AdminFields = () => (
-    <div style={{ padding: 16, borderRadius: 14, background: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
-      <p style={{ fontSize: 14, color: COLORS.textSecondary, margin: 0 }}>
-        Enter admin access code to continue
-      </p>
-    </div>
-  );
+export default function AuthPage() {
+  const router = useRouter();
+  const { login: setAuthUser } = useAuth();
+  
+  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [showPassword, setShowPassword] = useState(false);
+  const [role, setRole] = useState<'client' | 'business' | 'admin'>('client');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [businessName, setBusinessName] = useState('');
+  const [contactPerson, setContactPerson] = useState('');
+  const [address, setAddress] = useState('');
+  const [category, setCategory] = useState('hair');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    if (mode === 'signup') {
+      if (role === 'business') {
+        if (!businessName || !contactPerson || !address) {
+          setError('Please fill in all required business fields');
+          setLoading(false);
+          return;
+        }
+      }
+      if (role === 'admin') {
+        if (password !== 'admin123') {
+          setError('Invalid admin code');
+          setLoading(false);
+          return;
+        }
+      }
+      
+      const result = await registerUser(
+        role === 'business' ? businessName : name || 'User',
+        email,
+        password,
+        phone,
+        role,
+        businessName,
+        contactPerson,
+        address,
+        category
+      );
+      
+      if (result.error) {
+        setError(result.error);
+        setLoading(false);
+        return;
+      }
+      
+      if (result.user) {
+        setAuthUser(result.user);
+        router.push(role === 'business' ? '/business/apply' : role === 'admin' ? '/admin' : '/client');
+      }
+    } else {
+      const result = await loginUser(email, password);
+      if (result.error) {
+        setError(result.error);
+        setLoading(false);
+        return;
+      }
+      if (result.user) {
+        setAuthUser(result.user);
+        router.push(result.user.role === 'admin' ? '/admin' : result.user.role === 'business' ? '/business' : '/client');
+      }
+    }
+    setLoading(false);
+  };
+
+  const handleRoleChange = (newRole: 'client' | 'business' | 'admin') => {
+    setRole(newRole);
+    if (mode === 'signup') {
+      setName('');
+      setBusinessName('');
+      setContactPerson('');
+      setAddress('');
+      setCategory('hair');
+    }
+  };
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.background, padding: '60px 20px' }}>
@@ -191,19 +182,30 @@ const BusinessFields = () => (
 
         {/* Role Selection */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-          {(['client', 'business', 'admin'] as const).map((r) => (
-            <div key={r} onClick={() => handleRoleSelect(r)} style={{
-              flex: 1, padding: '12px 8px', borderRadius: 14, whiteSpace: 'nowrap',
-              background: role === r ? COLORS.primary : 'white',
-              border: `2px solid ${role === r ? COLORS.primary : COLORS.border}`, 
-              fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
-            }}>
-              {r === 'client' && <User size={16} />}
-              {r === 'business' && <Store size={16} />}
-              {r === 'admin' && <Shield size={16} />}
-              {r.charAt(0).toUpperCase() + r.slice(1)}
-            </div>
-          ))}
+          <button onClick={() => handleRoleChange('client')} style={{
+            flex: 1, padding: '12px 8px', borderRadius: 14, whiteSpace: 'nowrap',
+            background: role === 'client' ? COLORS.primary : 'white',
+            border: `2px solid ${role === 'client' ? COLORS.primary : COLORS.border}`, 
+            fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+          }}>
+            <User size={16} />Client
+          </button>
+          <button onClick={() => handleRoleChange('business')} style={{
+            flex: 1, padding: '12px 8px', borderRadius: 14, whiteSpace: 'nowrap',
+            background: role === 'business' ? COLORS.primary : 'white',
+            border: `2px solid ${role === 'business' ? COLORS.primary : COLORS.border}`, 
+            fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+          }}>
+            <Store size={16} />Business
+          </button>
+          <button onClick={() => handleRoleChange('admin')} style={{
+            flex: 1, padding: '12px 8px', borderRadius: 14, whiteSpace: 'nowrap',
+            background: role === 'admin' ? COLORS.primary : 'white',
+            border: `2px solid ${role === 'admin' ? COLORS.primary : COLORS.border}`, 
+            fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+          }}>
+            <Shield size={16} />Admin
+          </button>
         </div>
 
         {/* Login/Signup Toggle */}
@@ -225,17 +227,14 @@ const BusinessFields = () => (
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} autoComplete="off" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {mode === 'signup' && role === 'client' && (
             <div>
               <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Name</label>
               <input 
                 type="text" 
-                name="name" 
-                id="name"
                 value={name} 
                 onChange={(e) => setName(e.target.value)}
-                autoComplete="off"
                 style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
                 placeholder="Your name" 
               />
@@ -246,12 +245,9 @@ const BusinessFields = () => (
             <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Email</label>
             <input 
               type="email" 
-              name="email" 
-              id="email"
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
               required
-              autoComplete="off"
               style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
               placeholder="you@example.com" 
             />
@@ -264,12 +260,9 @@ const BusinessFields = () => (
             <div style={{ position: 'relative' }}>
               <input 
                 type={showPassword ? 'text' : 'password'} 
-                name="password" 
-                id="password"
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
                 required
-                autoComplete="off"
                 style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16, paddingRight: 48 }} 
                 placeholder={role === 'admin' ? 'admin123' : '••••••••'} 
               />
@@ -287,20 +280,31 @@ const BusinessFields = () => (
               <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Phone (optional)</label>
               <input 
                 type="tel" 
-                name="phone" 
-                id="phone"
                 value={phone} 
                 onChange={(e) => setPhone(e.target.value)}
-                autoComplete="off"
                 style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
                 placeholder="+359..." 
               />
             </div>
           )}
 
-          {/* Role-specific fields */}
-          {mode === 'signup' && role === 'business' && <BusinessFields />}
-          {mode === 'signup' && role === 'admin' && <AdminFields />}
+          {/* Role-specific fields - always rendered, just conditionally visible content */}
+          {mode === 'signup' && role === 'business' && (
+            <BusinessFields 
+              businessName={businessName} setBusinessName={setBusinessName}
+              contactPerson={contactPerson} setContactPerson={setContactPerson}
+              address={address} setAddress={setAddress}
+              category={category} setCategory={setCategory}
+            />
+          )}
+
+          {mode === 'signup' && role === 'admin' && (
+            <div style={{ padding: 16, borderRadius: 14, background: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
+              <p style={{ fontSize: 14, color: COLORS.textSecondary, margin: 0 }}>
+                Enter admin access code to continue
+              </p>
+            </div>
+          )}
 
           {error && <p style={{ color: COLORS.error, fontSize: 14 }}>{error}</p>}
 

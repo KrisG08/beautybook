@@ -119,21 +119,15 @@ export default function AuthPage() {
     setLoading(false);
   };
 
-  const BusinessFields = () => (
+const BusinessFields = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div>
         <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Business Name *</label>
         <input 
           type="text" 
-          data-form-field="businessName"
           value={businessName} 
-          onChange={(e) => {
-            e.stopPropagation();
-            setBusinessName(e.target.value);
-          }} 
-          required={false}
-          autoComplete="off"
-          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16, display: 'block' }} 
+          onChange={(e) => setBusinessName(e.target.value)}
+          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
           placeholder="Studio 22 Barbershop" 
         />
       </div>
@@ -141,15 +135,9 @@ export default function AuthPage() {
         <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Contact Person *</label>
         <input 
           type="text" 
-          data-form-field="contactPerson"
           value={contactPerson} 
-          onChange={(e) => {
-            e.stopPropagation();
-            setContactPerson(e.target.value);
-          }} 
-          required={false}
-          autoComplete="off"
-          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16, display: 'block' }} 
+          onChange={(e) => setContactPerson(e.target.value)}
+          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
           placeholder="John Doe" 
         />
       </div>
@@ -157,25 +145,18 @@ export default function AuthPage() {
         <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Address *</label>
         <input 
           type="text" 
-          data-form-field="address"
           value={address} 
-          onChange={(e) => {
-            e.stopPropagation();
-            setAddress(e.target.value);
-          }} 
-          required={false}
-          autoComplete="off"
-          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16, display: 'block' }} 
+          onChange={(e) => setAddress(e.target.value)}
+          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
           placeholder="Plovdiv, Bulgaria" 
         />
       </div>
       <div>
         <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Category</label>
         <select 
-          data-form-field="category"
           value={category} 
           onChange={(e) => setCategory(e.target.value)}
-          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16, display: 'block' }}
+          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }}
         >
           <option value="hair">Hair & Barber</option>
           <option value="nails">Nails</option>

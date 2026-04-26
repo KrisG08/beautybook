@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { User, Store, Shield, ArrowLeft, ArrowRight, Eye, EyeOff, Check } from 'lucide-react';
+import { User, Store, Shield, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { registerUser, loginUser } from '@/lib/actions';
 import { useAuth } from '@/lib/authContext';
 
@@ -22,6 +22,8 @@ const COLORS = {
 export default function AuthPage() {
   const router = useRouter();
   const { user, login: setAuthUser } = useAuth();
+  
+  // Individual state for each field - avoids object reference issues
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<'client' | 'business' | 'admin'>('client');
@@ -29,22 +31,31 @@ export default function AuthPage() {
   const [error, setError] = useState('');
   const [mounted, setMounted] = useState(false);
   
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    phone: '',
-    businessName: '',
-    contactPerson: '',
-    address: '',
-    category: 'hair',
-  });
+  // Individual form fields
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [businessName, setBusinessName] = useState('');
+  const [contactPerson, setContactPerson] = useState('');
+  const [address, setAddress] = useState('');
+  const [category, setCategory] = useState('hair');
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Don't auto-redirect on auth page - user should see login page
+  // Stable callback - doesn't recreate on render
+  const handleRoleSelect = useCallback((selectedRole: 'client' | 'business' | 'admin') => {
+    setRole(selectedRole);
+    if (mode === 'signup') {
+      setName('');
+      setBusinessName('');
+      setContactPerson('');
+      setAddress('');
+      setCategory('hair');
+    }
+  }, [mode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,14 +64,14 @@ export default function AuthPage() {
 
     if (mode === 'signup') {
       if (role === 'business') {
-        if (!form.businessName || !form.contactPerson || !form.address) {
+        if (!businessName || !contactPerson || !address) {
           setError('Please fill in all required business fields');
           setLoading(false);
           return;
         }
       }
       if (role === 'admin') {
-        if (form.password !== 'admin123') {
+        if (password !== 'admin123') {
           setError('Invalid admin code');
           setLoading(false);
           return;
@@ -68,15 +79,15 @@ export default function AuthPage() {
       }
       
       const result = await registerUser(
-        role === 'business' ? form.businessName : form.name || 'User',
-        form.email,
-        form.password,
-        form.phone,
+        role === 'business' ? businessName : name || 'User',
+        email,
+        password,
+        phone,
         role,
-        form.businessName,
-        form.contactPerson,
-        form.address,
-        form.category
+        businessName,
+        contactPerson,
+        address,
+        category
       );
       
       if (result.error) {
@@ -94,7 +105,7 @@ export default function AuthPage() {
         }
       }
     } else {
-      const result = await loginUser(form.email, form.password);
+      const result = await loginUser(email, password);
       if (result.error) {
         setError(result.error);
         setLoading(false);
@@ -108,13 +119,6 @@ export default function AuthPage() {
     setLoading(false);
   };
 
-  const handleRoleSelect = (selectedRole: 'client' | 'business' | 'admin') => {
-    setRole(selectedRole);
-    if (mode === 'signup') {
-      setForm({ ...form, name: '', businessName: '', contactPerson: '', address: '', category: 'hair' });
-    }
-  };
-
   const BusinessFields = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div>
@@ -123,8 +127,8 @@ export default function AuthPage() {
           type="text" 
           name="businessName" 
           id="businessName"
-          value={form.businessName} 
-          onChange={(e) => setForm({ ...form, businessName: e.target.value })} 
+          value={businessName} 
+          onChange={(e) => setBusinessName(e.target.value)} 
           required
           autoComplete="off"
           style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
@@ -137,8 +141,8 @@ export default function AuthPage() {
           type="text" 
           name="contactPerson" 
           id="contactPerson"
-          value={form.contactPerson} 
-          onChange={(e) => setForm({ ...form, contactPerson: e.target.value })} 
+          value={contactPerson} 
+          onChange={(e) => setContactPerson(e.target.value)} 
           required
           autoComplete="off"
           style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
@@ -151,8 +155,8 @@ export default function AuthPage() {
           type="text" 
           name="address" 
           id="address"
-          value={form.address} 
-          onChange={(e) => setForm({ ...form, address: e.target.value })} 
+          value={address} 
+          onChange={(e) => setAddress(e.target.value)} 
           required
           autoComplete="off"
           style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
@@ -162,8 +166,8 @@ export default function AuthPage() {
       <div>
         <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Category</label>
         <select 
-          value={form.category} 
-          onChange={(e) => setForm({ ...form, category: e.target.value })}
+          value={category} 
+          onChange={(e) => setCategory(e.target.value)}
           style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }}
         >
           <option value="hair">Hair & Barber</option>
@@ -241,8 +245,8 @@ export default function AuthPage() {
                 type="text" 
                 name="name" 
                 id="name"
-                value={form.name} 
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                value={name} 
+                onChange={(e) => setName(e.target.value)}
                 autoComplete="off"
                 style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
                 placeholder="Your name" 
@@ -256,8 +260,8 @@ export default function AuthPage() {
               type="email" 
               name="email" 
               id="email"
-              value={form.email} 
-              onChange={(e) => setForm({ ...form, email: e.target.value })} 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
               required
               autoComplete="off"
               style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
@@ -274,8 +278,8 @@ export default function AuthPage() {
                 type={showPassword ? 'text' : 'password'} 
                 name="password" 
                 id="password"
-                value={form.password} 
-                onChange={(e) => setForm({ ...form, password: e.target.value })} 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
                 required
                 autoComplete="off"
                 style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16, paddingRight: 48 }} 
@@ -297,8 +301,8 @@ export default function AuthPage() {
                 type="tel" 
                 name="phone" 
                 id="phone"
-                value={form.phone} 
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                value={phone} 
+                onChange={(e) => setPhone(e.target.value)}
                 autoComplete="off"
                 style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
                 placeholder="+359..." 

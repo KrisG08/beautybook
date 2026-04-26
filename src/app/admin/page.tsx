@@ -26,6 +26,10 @@ export default function AdminHome() {
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     const stored = localStorage.getItem('user');
     if (!stored) {
       router.push('/auth');
@@ -36,7 +40,7 @@ export default function AdminHome() {
       router.push(userData.role === 'business' ? '/business' : '/client');
       return;
     }
-  }, []);
+  }, [mounted]);
 
   useEffect(() => {
     if (!mounted) return;

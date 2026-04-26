@@ -1,8 +1,8 @@
-export async function registerUser(name: string, email: string, password: string, phone: string, role: string = 'client') {
+export async function registerUser(name: string, email: string, password: string, phone: string, role: string = 'client', businessName?: string, contactPerson?: string, address?: string, category?: string) {
   const res = await fetch('/api/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, email, password, phone, role }),
+    body: JSON.stringify({ name, email, password, phone, role, businessName, contactPerson, address, category }),
   });
   const data = await res.json();
   if (data.error) return { error: data.error };

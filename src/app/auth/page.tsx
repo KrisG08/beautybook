@@ -54,7 +54,7 @@ export default function AuthPage() {
     if (mode === 'signup') {
       if (role === 'business') {
         if (!form.businessName || !form.contactPerson || !form.address) {
-          setError('Please fill in all business details');
+          setError('Please fill in all required business fields');
           setLoading(false);
           return;
         }
@@ -72,7 +72,11 @@ export default function AuthPage() {
         form.email,
         form.password,
         form.phone,
-        role
+        role,
+        form.businessName,
+        form.contactPerson,
+        form.address,
+        form.category
       );
       
       if (result.error) {

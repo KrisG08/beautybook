@@ -86,6 +86,7 @@ export default function AuthPage() {
   const [role, setRole] = useState<'client' | 'business' | 'admin'>('client');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [adminKey, setAdminKey] = useState('');
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -110,8 +111,8 @@ export default function AuthPage() {
         }
       }
       if (role === 'admin') {
-        if (password !== 'admin123') {
-          setError('Invalid admin code');
+        if (adminKey !== 'admin123') {
+          setError('Invalid admin access code');
           setLoading(false);
           return;
         }
@@ -254,9 +255,7 @@ export default function AuthPage() {
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>
-              {role === 'admin' ? 'Admin Code' : 'Password'}
-            </label>
+            <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Password</label>
             <div style={{ position: 'relative' }}>
               <input 
                 type={showPassword ? 'text' : 'password'} 
@@ -284,6 +283,20 @@ export default function AuthPage() {
                 onChange={(e) => setPhone(e.target.value)}
                 style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
                 placeholder="+359..." 
+              />
+            </div>
+          )}
+
+          {mode === 'signup' && role === 'admin' && (
+            <div>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Admin Access Code *</label>
+              <input 
+                type="password" 
+                value={adminKey} 
+                onChange={(e) => setAdminKey(e.target.value)}
+                required
+                style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
+                placeholder="Enter admin code" 
               />
             </div>
           )}

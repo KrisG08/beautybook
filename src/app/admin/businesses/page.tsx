@@ -1,11 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Check, X, Search, Filter } from 'lucide-react';
-import { Button, Badge, TabButton } from '@/components/UI';
-import { useStore } from '@/lib/store';
+import { ArrowLeft, Check, X, Search } from 'lucide-react';
+import { Badge, TabButton } from '@/components/UI';
 
 const colors = {
   primary: '#E8B4B8',
@@ -20,11 +19,38 @@ const colors = {
   error: '#E57373',
 };
 
+interface Business {
+  id: string;
+  name: string;
+  contactPerson: string;
+  address: string;
+  description: string;
+  email: string;
+  category: string;
+  status: string;
+}
+
 export default function AdminBusinesses() {
   const router = useRouter();
-  const { businesses, approveBusiness, rejectBusiness } = useStore();
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pending');
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    async function fetchBusinesses() {
+      try {
+        const res = await fetch('/api/data/businesses');
+        const data = await res.json();
+        setBusinesses(data);
+      } catch (err) {
+        console.error('Failed to fetch:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchBusinesses();
+  }, []);
 
   const filteredBusinesses = businesses.filter(b => {
     if (activeTab === 'pending') return b.status === 'pending';
@@ -34,6 +60,36 @@ export default function AdminBusinesses() {
   }).filter(b => 
     b.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  async function handleApprove(id: string) {
+    try {
+      const res = await fetch(`/api/data/business/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'approved' }),
+      });
+      if (res.ok) {
+        setBusinesses(prev => prev.map(b => b.id === id ? { ...b, status: 'approved' } : b));
+      }
+    } catch (err) {
+      console.error('Failed to approve:', err);
+    }
+  }
+
+  async function handleReject(id: string) {
+    try {
+      const res = await fetch(`/api/data/business/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'rejected' }),
+      });
+      if (res.ok) {
+        setBusinesses(prev => prev.map(b => b.id === id ? { ...b, status: 'rejected' } : b));
+      }
+    } catch (err) {
+      console.error('Failed to reject:', err);
+    }
+} 
 
   return (
     <div className="container" style={{ paddingTop: 20, paddingBottom: 40 }}>
@@ -147,21 +203,20 @@ export default function AdminBusinesses() {
 
               {business.status === 'pending' && (
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <Button
-                    onClick={() => approveBusiness(business.id)}
-                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                  <button
+                    onClick={() => handleApprove(business.id)}
+                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 12, border: 'none', background: colors.success, color: 'white', fontWeight: 600, cursor: 'pointer' }}
                   >
                     <Check size={16} />
                     Approve
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={() => rejectBusiness(business.id)}
-                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                  </button>
+                  <button
+                    onClick={() => handleReject(business.id)}
+                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 12, border: 'none', background: colors.error, color: 'white', fontWeight: 600, cursor: 'pointer' }}
                   >
                     <X size={16} />
                     Reject
-                  </Button>
+                  </button>
                 </div>
               )}
             </motion.div>

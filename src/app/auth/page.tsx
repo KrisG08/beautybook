@@ -119,23 +119,53 @@ export default function AuthPage() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div>
         <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Business Name *</label>
-        <input type="text" value={form.businessName} onChange={(e) => setForm({ ...form, businessName: e.target.value })} required
-          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} placeholder="Studio 22 Barbershop" />
+        <input 
+          type="text" 
+          name="businessName" 
+          id="businessName"
+          value={form.businessName} 
+          onChange={(e) => setForm({ ...form, businessName: e.target.value })} 
+          required
+          autoComplete="off"
+          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
+          placeholder="Studio 22 Barbershop" 
+        />
       </div>
       <div>
         <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Contact Person *</label>
-        <input type="text" value={form.contactPerson} onChange={(e) => setForm({ ...form, contactPerson: e.target.value })} required
-          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} placeholder="John Doe" />
+        <input 
+          type="text" 
+          name="contactPerson" 
+          id="contactPerson"
+          value={form.contactPerson} 
+          onChange={(e) => setForm({ ...form, contactPerson: e.target.value })} 
+          required
+          autoComplete="off"
+          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
+          placeholder="John Doe" 
+        />
       </div>
       <div>
         <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Address *</label>
-        <input type="text" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} required
-          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} placeholder="Plovdiv, Bulgaria" />
+        <input 
+          type="text" 
+          name="address" 
+          id="address"
+          value={form.address} 
+          onChange={(e) => setForm({ ...form, address: e.target.value })} 
+          required
+          autoComplete="off"
+          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
+          placeholder="Plovdiv, Bulgaria" 
+        />
       </div>
       <div>
         <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Category</label>
-        <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
-          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }}>
+        <select 
+          value={form.category} 
+          onChange={(e) => setForm({ ...form, category: e.target.value })}
+          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }}
+        >
           <option value="hair">Hair & Barber</option>
           <option value="nails">Nails</option>
           <option value="aesthetic">Aesthetic</option>
@@ -203,19 +233,36 @@ export default function AuthPage() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <form onSubmit={handleSubmit} autoComplete="off" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {mode === 'signup' && role === 'client' && (
             <div>
               <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Name</label>
-              <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} placeholder="Your name" />
+              <input 
+                type="text" 
+                name="name" 
+                id="name"
+                value={form.name} 
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                autoComplete="off"
+                style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
+                placeholder="Your name" 
+              />
             </div>
           )}
 
           <div>
             <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Email</label>
-            <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required
-              style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} placeholder="you@example.com" />
+            <input 
+              type="email" 
+              name="email" 
+              id="email"
+              value={form.email} 
+              onChange={(e) => setForm({ ...form, email: e.target.value })} 
+              required
+              autoComplete="off"
+              style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
+              placeholder="you@example.com" 
+            />
           </div>
 
           <div>
@@ -223,8 +270,17 @@ export default function AuthPage() {
               {role === 'admin' ? 'Admin Code' : 'Password'}
             </label>
             <div style={{ position: 'relative' }}>
-              <input type={showPassword ? 'text' : 'password'} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required
-                style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16, paddingRight: 48 }} placeholder={role === 'admin' ? 'admin123' : '••••••••'} />
+              <input 
+                type={showPassword ? 'text' : 'password'} 
+                name="password" 
+                id="password"
+                value={form.password} 
+                onChange={(e) => setForm({ ...form, password: e.target.value })} 
+                required
+                autoComplete="off"
+                style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16, paddingRight: 48 }} 
+                placeholder={role === 'admin' ? 'admin123' : '••••••••'} 
+              />
               <button type="button" onClick={() => setShowPassword(!showPassword)} style={{
                 position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
                 background: 'none', border: 'none', cursor: 'pointer'
@@ -237,8 +293,16 @@ export default function AuthPage() {
           {mode === 'signup' && role === 'client' && (
             <div>
               <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Phone (optional)</label>
-              <input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} placeholder="+359..." />
+              <input 
+                type="tel" 
+                name="phone" 
+                id="phone"
+                value={form.phone} 
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                autoComplete="off"
+                style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
+                placeholder="+359..." 
+              />
             </div>
           )}
 

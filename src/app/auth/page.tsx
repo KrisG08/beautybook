@@ -125,13 +125,15 @@ export default function AuthPage() {
         <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Business Name *</label>
         <input 
           type="text" 
-          name="businessName" 
-          id="businessName"
+          data-form-field="businessName"
           value={businessName} 
-          onChange={(e) => setBusinessName(e.target.value)} 
-          required
+          onChange={(e) => {
+            e.stopPropagation();
+            setBusinessName(e.target.value);
+          }} 
+          required={false}
           autoComplete="off"
-          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
+          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16, display: 'block' }} 
           placeholder="Studio 22 Barbershop" 
         />
       </div>
@@ -139,13 +141,15 @@ export default function AuthPage() {
         <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Contact Person *</label>
         <input 
           type="text" 
-          name="contactPerson" 
-          id="contactPerson"
+          data-form-field="contactPerson"
           value={contactPerson} 
-          onChange={(e) => setContactPerson(e.target.value)} 
-          required
+          onChange={(e) => {
+            e.stopPropagation();
+            setContactPerson(e.target.value);
+          }} 
+          required={false}
           autoComplete="off"
-          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
+          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16, display: 'block' }} 
           placeholder="John Doe" 
         />
       </div>
@@ -153,22 +157,25 @@ export default function AuthPage() {
         <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Address *</label>
         <input 
           type="text" 
-          name="address" 
-          id="address"
+          data-form-field="address"
           value={address} 
-          onChange={(e) => setAddress(e.target.value)} 
-          required
+          onChange={(e) => {
+            e.stopPropagation();
+            setAddress(e.target.value);
+          }} 
+          required={false}
           autoComplete="off"
-          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
+          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16, display: 'block' }} 
           placeholder="Plovdiv, Bulgaria" 
         />
       </div>
       <div>
         <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Category</label>
         <select 
+          data-form-field="category"
           value={category} 
           onChange={(e) => setCategory(e.target.value)}
-          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }}
+          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16, display: 'block' }}
         >
           <option value="hair">Hair & Barber</option>
           <option value="nails">Nails</option>
@@ -188,7 +195,7 @@ export default function AuthPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.background, padding: '60px 20px' }}>
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <div>
         <button onClick={() => router.push('/')} style={{ background: 'none', border: 'none', cursor: 'pointer', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
           <ArrowLeft size={20} color={COLORS.textMuted} />
           <span style={{ fontSize: 14, color: COLORS.textMuted }}>Back</span>
@@ -324,7 +331,7 @@ export default function AuthPage() {
             {loading ? 'Please wait...' : mode === 'login' ? 'Sign In' : role === 'business' ? 'Create Business Account' : role === 'admin' ? 'Access Admin' : 'Create Account'}
           </button>
         </form>
-      </motion.div>
+      </div>
     </div>
   );
 }

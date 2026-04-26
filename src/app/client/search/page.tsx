@@ -1,12 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { Search, SlidersHorizontal, X, ChevronDown } from 'lucide-react';
+import { Search, SlidersHorizontal } from 'lucide-react';
 import { ClientBottomNav, BusinessCard, FilterChip } from '@/components/UI';
-import { useStore } from '@/lib/store';
-import { CATEGORIES } from '@/lib/types';
 import { format, addDays } from 'date-fns';
 
 const colors = {
@@ -20,24 +18,59 @@ const colors = {
   textMuted: '#9A9595',
 };
 
-const SERVICE_TYPES = ['Hair', 'Nails', 'Skin', 'Massage', 'Makeup', 'Brows'];
-const SUBTYPES = ['Regular', 'Gel Polish', 'Spa', 'Standard', 'Moisturizing', 'Relaxation', 'Therapeutic', 'Natural', 'Glamour', 'Threading'];
 const TIME_SLOTS = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
+
+interface Business {
+  id: string;
+  name: string;
+  address: string;
+  description: string;
+  category: string;
+  rating: number;
+  reviewCount: number;
+  status: string;
+  imageUrl?: string;
+}
 
 export default function ClientSearch() {
   const router = useRouter();
-  const { businesses, filters, setFilters } = useStore();
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [serviceType, setServiceType] = useState<string | null>(null);
+  const [date, setDate] = useState<string | null>(null);
+  const [time, setTime] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchBusinesses() {
+      try {
+        const res = await fetch('/api/data/businesses');
+        const data = await res.json();
+        setBusinesses(data);
+      } catch (err) {
+        console.error('Failed to fetch:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchBusinesses();
+  }, []);
 
   const filteredBusinesses = businesses.filter(b => {
     if (b.status !== 'approved') return false;
-    if (filters.serviceType && b.category !== filters.serviceType) return false;
+    if (serviceType && b.category !== serviceType) return false;
     if (searchQuery && !b.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
 
   const dates = Array.from({ length: 7 }, (_, i) => addDays(new Date(), i));
+
+  const categories = [
+    { id: 'hair', name: 'Hair & Barber', emoji: '💇' },
+    { id: 'nails', name: 'Nails', emoji: '💅' },
+    { id: 'aesthetic', name: 'Aesthetic', emoji: '✨' },
+  ];
 
   return (
     <div className="container" style={{ paddingBottom: 80 }}>
@@ -71,15 +104,15 @@ export default function ClientSearch() {
               width: 44,
               height: 44,
               borderRadius: 12,
-              background: filters.serviceType ? colors.primary : colors.surface,
-              border: '2px solid ' + (filters.serviceType ? colors.primary : colors.secondary),
+              background: serviceType ? colors.primary : colors.surface,
+              border: '2px solid ' + (serviceType ? colors.primary : colors.secondary),
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
             }}
           >
-            <SlidersHorizontal size={20} stroke={filters.serviceType ? colors.surface : colors.textMuted} />
+            <SlidersHorizontal size={20} stroke={serviceType ? colors.surface : colors.textMuted} />
           </motion.div>
         </div>
 
@@ -97,15 +130,15 @@ export default function ClientSearch() {
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                     <FilterChip
                       label="All"
-                      selected={!filters.serviceType}
-                      onClick={() => setFilters({ serviceType: null })}
+                      selected={!serviceType}
+                      onClick={() => setServiceType(null)}
                     />
-                    {SERVICE_TYPES.map((type) => (
+                    {categories.map((cat) => (
                       <FilterChip
-                        key={type}
-                        label={type}
-                        selected={filters.serviceType === type.toLowerCase()}
-                        onClick={() => setFilters({ serviceType: type.toLowerCase() })}
+                        key={cat.id}
+                        label={cat.name}
+                        selected={serviceType === cat.id}
+                        onClick={() => setServiceType(cat.id)}
                       />
                     ))}
                   </div>
@@ -114,12 +147,12 @@ export default function ClientSearch() {
                 <div style={{ marginBottom: 20 }}>
                   <h4 style={{ fontSize: 14, marginBottom: 12, color: colors.textSecondary }}>Date</h4>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {dates.map((date) => (
+                    {dates.map((d) => (
                       <FilterChip
-                        key={date.toISOString()}
-                        label={format(date, 'EEE, MMM d')}
-                        selected={filters.date === format(date, 'yyyy-MM-dd')}
-                        onClick={() => setFilters({ date: format(date, 'yyyy-MM-dd') })}
+                        key={d.toISOString()}
+                        label={format(d, 'EEE, MMM d')}
+                        selected={date === format(d, 'yyyy-MM-dd')}
+                        onClick={() => setDate(format(d, 'yyyy-MM-dd'))}
                       />
                     ))}
                   </div>
@@ -128,12 +161,12 @@ export default function ClientSearch() {
                 <div style={{ marginBottom: 20 }}>
                   <h4 style={{ fontSize: 14, marginBottom: 12, color: colors.textSecondary }}>Time</h4>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {TIME_SLOTS.map((time) => (
+                    {TIME_SLOTS.map((t) => (
                       <FilterChip
-                        key={time}
-                        label={time}
-                        selected={filters.time === time}
-                        onClick={() => setFilters({ time: filters.time === time ? null : time })}
+                        key={t}
+                        label={t}
+                        selected={time === t}
+                        onClick={() => setTime(time === t ? null : t)}
                       />
                     ))}
                   </div>
@@ -160,18 +193,13 @@ export default function ClientSearch() {
           )}
         </AnimatePresence>
 
-        {filters.serviceType && (
+        {serviceType && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
             <span style={{ fontSize: 14, color: colors.textMuted }}>Filtered by:</span>
             <FilterChip
-              label={filters.serviceType + ' ×'}
+              label={serviceType + ' ×'}
               selected={true}
-              onClick={() => setFilters({ serviceType: null })}
-            />
-            <FilterChip
-              label={filters.date ? format(new Date(filters.date), 'MMM d') + ' ×' : 'All dates'}
-              selected={false}
-              onClick={() => setFilters({ date: null })}
+              onClick={() => setServiceType(null)}
             />
           </div>
         )}

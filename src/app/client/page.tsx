@@ -5,8 +5,6 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Search, Zap, Clock, TrendingUp } from 'lucide-react';
 import { ClientBottomNav, CategoryCard, BusinessCard } from '@/components/UI';
-import { useStore } from '@/lib/store';
-import { CATEGORIES } from '@/lib/types';
 
 const colors = {
   primary: '#FFD600',
@@ -17,9 +15,28 @@ const colors = {
   textMuted: '#9A9595',
 };
 
+interface Business {
+  id: string;
+  name: string;
+  address: string;
+  description: string;
+  category: string;
+  rating: number;
+  reviewCount: number;
+  status: string;
+  imageUrl?: string;
+}
+
+const CATEGORIES = [
+  { id: 'hair', name: 'Hair & Barber', icon: '💇', color: '#FFD600' },
+  { id: 'nails', name: 'Nails', icon: '💅', color: '#E8B4B8' },
+  { id: 'aesthetic', name: 'Aesthetic', icon: '✨', color: '#C9A87C' },
+];
+
 export default function ClientHome() {
   const router = useRouter();
-  const { businesses } = useStore();
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -40,7 +57,23 @@ export default function ClientHome() {
     }
   }, [mounted]);
 
-  if (!mounted) return null;
+  useEffect(() => {
+    if (!mounted) return;
+    async function fetchBusinesses() {
+      try {
+        const res = await fetch('/api/data/businesses');
+        const data = await res.json();
+        setBusinesses(data);
+      } catch (err) {
+        console.error('Failed to fetch:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchBusinesses();
+  }, [mounted]);
+
+  if (!mounted || loading) return null;
 
   const approvedBusinesses = businesses.filter(b => b.status === 'approved').slice(0, 6);
 

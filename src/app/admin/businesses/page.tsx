@@ -63,7 +63,7 @@ export default function AdminBusinesses() {
 
   async function handleApprove(id: string) {
     try {
-      const res = await fetch(`/api/data/business/${id}`, {
+      const res = await fetch(`/api/data/business?businessId=${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'approved' }),
@@ -78,7 +78,7 @@ export default function AdminBusinesses() {
 
   async function handleReject(id: string) {
     try {
-      const res = await fetch(`/api/data/business/${id}`, {
+      const res = await fetch(`/api/data/business?businessId=${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'rejected' }),

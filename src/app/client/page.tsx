@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Search, Zap, Clock, TrendingUp } from 'lucide-react';
@@ -19,6 +20,23 @@ const colors = {
 export default function ClientHome() {
   const router = useRouter();
   const { businesses } = useStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const stored = localStorage.getItem('user');
+    if (!stored) {
+      router.push('/auth');
+      return;
+    }
+    const userData = JSON.parse(stored);
+    if (userData.role !== 'client') {
+      router.push(userData.role === 'admin' ? '/admin' : '/business');
+      return;
+    }
+  }, []);
+
+  if (!mounted) return null;
 
   const approvedBusinesses = businesses.filter(b => b.status === 'approved').slice(0, 6);
 

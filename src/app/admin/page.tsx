@@ -22,19 +22,32 @@ export default function AdminHome() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const [businesses, setBusinesses] = useState<any[]>([]);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+    const stored = localStorage.getItem('user');
+    if (!stored) {
+      router.push('/auth');
+      return;
+    }
+    const userData = JSON.parse(stored);
+    if (userData.role !== 'admin') {
+      router.push(userData.role === 'business' ? '/business' : '/client');
+      return;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     async function loadData() {
       const data = await getAllBusinesses();
       setBusinesses(data);
     }
     loadData();
-  }, []);
+  }, [mounted]);
 
-  if (!user) {
-    router.push('/auth');
-    return null;
-  }
+  if (!mounted || !user) return null;
 
   const totalBusinesses = businesses.filter(b => b.status === 'approved').length;
   const pendingBusinesses = businesses.filter(b => b.status === 'pending').length;

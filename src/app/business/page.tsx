@@ -24,8 +24,24 @@ export default function BusinessHome() {
   const { user, logout } = useAuth();
   const [business, setBusiness] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+    const stored = localStorage.getItem('user');
+    if (!stored) {
+      router.push('/auth');
+      return;
+    }
+    const userData = JSON.parse(stored);
+    if (userData.role !== 'business') {
+      router.push(userData.role === 'admin' ? '/admin' : '/client');
+      return;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || !user) return;
     async function loadBusiness() {
       if (user) {
         const biz = await getBusinessByUserId(user.id);
@@ -34,12 +50,9 @@ export default function BusinessHome() {
       setLoading(false);
     }
     loadBusiness();
-  }, [user]);
+  }, [mounted, user]);
 
-  if (!user) {
-    router.push('/auth');
-    return null;
-  }
+  if (!mounted || !user) return null;
 
   if (loading) {
     return <div style={{ minHeight: '100vh', background: colors.background, padding: 60, textAlign: 'center' }}>Loading...</div>;

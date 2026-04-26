@@ -27,6 +27,7 @@ export default function AuthPage() {
   const [role, setRole] = useState<'client' | 'business' | 'admin'>('client');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [mounted, setMounted] = useState(false);
   
   const [form, setForm] = useState({
     name: '',
@@ -40,10 +41,10 @@ export default function AuthPage() {
   });
 
   useEffect(() => {
-    if (user) {
-      router.push(user.role === 'admin' ? '/admin' : user.role === 'business' ? '/business' : '/client');
-    }
-  }, [user]);
+    setMounted(true);
+  }, []);
+
+  // Don't auto-redirect on auth page - user should see login page
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

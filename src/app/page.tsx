@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Sparkles, ArrowRight } from 'lucide-react';
@@ -14,6 +15,18 @@ const COLORS = {
 
 export default function LandingPage() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const stored = localStorage.getItem('user');
+    if (stored) {
+      const user = JSON.parse(stored);
+      router.replace(user.role === 'admin' ? '/admin' : user.role === 'business' ? '/business' : '/client');
+    }
+  }, []);
+
+  if (!mounted) return null;
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.background, padding: '60px 20px' }}>

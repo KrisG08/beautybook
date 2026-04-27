@@ -6,36 +6,75 @@ import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Star, MapPin, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ClientBottomNav, Button, TimeSlotButton, ReviewCard } from '@/components/UI';
 import { useStore } from '@/lib/store';
-import { Business, TimeSlot, Review } from '@/lib/types';
+import { Business, TimeSlot, Review, Service } from '@/lib/types';
 import { format, addDays } from 'date-fns';
 
 const colors = {
-  primary: '#E8B4B8',
-  secondary: '#F5E6E8',
-  accent: '#C9A87C',
-  background: '#FFFBFA',
-  surface: '#FFFFFF',
-  textPrimary: '#2D2A2A',
-  textSecondary: '#6B6565',
-  textMuted: '#9A9595',
+  primary: '#fdfcd2',
+  secondary: '#140755',
+  accent: '#ff6b9d',
+  accent2: '#00d4ff',
+  surface: '#12122a',
+  surfaceLight: '#1a1a3a',
+  background: '#0a0a1a',
+  textPrimary: '#fdfcd2',
+  textSecondary: '#b8b8d0',
+  textMuted: '#6a6a8a',
+  border: '#2a2a4a',
 };
 
 export default function LocationPage() {
   const router = useRouter();
   const params = useParams();
-  const { businesses, services, timeSlots, reviews, currentUser, createBooking } = useStore();
+  const { services, timeSlots, reviews, currentUser, createBooking } = useStore();
+  
+  const [business, setBusiness] = useState<Business | null>(null);
+    const [businessServices, setBusinessServices] = useState<Service[]>([]);
+  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+  const [businessReviews, setBusinessReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
   
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
 
-  const business = businesses.find(b => b.id === params.id) as Business | undefined;
-  const businessServices = services.filter(s => s.businessId === params.id);
-  const availableSlots = timeSlots.filter(
-    s => s.businessId === params.id && s.date === selectedDate && s.available
-  );
-  const businessReviews = reviews.filter(r => r.businessId === params.id);
+  useEffect(() => {
+    async function fetchBusinessData() {
+      try {
+        // Fetch business data
+        const businessRes = await fetch(`/api/data/businesses?businessId=${params.id}`);
+        const businessData = await businessRes.json();
+        
+        // Fetch services for this business
+        const servicesRes = await fetch(`/api/data/services?businessId=${params.id}`);
+        const servicesData = await servicesRes.json();
+        
+        // Fetch time slots for this business
+        const timeSlotsRes = await fetch(`/api/data/timeSlots?businessId=${params.id}`);
+        const timeSlotsData = await timeSlotsRes.json();
+        
+        // Fetch reviews for this business
+        const reviewsRes = await fetch(`/api/reviews?businessId=${params.id}`);
+        const reviewsData = await reviewsRes.json();
+        
+        setBusiness(Array.isArray(businessData) ? businessData[0] : businessData);
+        setBusinessServices(servicesData);
+        setAvailableSlots(timeSlotsData);
+        setBusinessReviews(reviewsData);
+      } catch (error) {
+        console.error('Failed to fetch business data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    if (params.id) {
+      fetchBusinessData();
+    }
+  }, [params.id]);
+
+  const filteredSlots = availableSlots.filter(slot => slot.date === selectedDate && slot.available);
 
   const dates = Array.from({ length: 7 }, (_, i) => addDays(new Date(), i));
 
@@ -49,13 +88,21 @@ export default function LocationPage() {
       return;
     }
 
-    createBooking(currentUser.id, business!.id, selectedService, selectedTimeSlot.id);
+    createBooking(currentUser.id, business!.id, selectedService.id, selectedTimeSlot.id);
     router.push('/client/calendar');
   };
 
+  if (loading) {
+    return (
+      <div className="container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p>Loading business details...</p>
+      </div>
+    );
+  }
+
   if (!business) {
     return (
-      <div className="container">
+      <div className="container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <p>Business not found</p>
       </div>
     );
@@ -133,32 +180,59 @@ export default function LocationPage() {
               Select Service
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {businessServices.slice(0, 5).map((service) => (
-                <motion.div
-                  key={service.id}
-                  onClick={() => setSelectedService(service.id)}
-                  whileTap={{ scale: 0.98 }}
-                  style={{
-                    padding: 12,
-                    borderRadius: 12,
-                    border: `2px solid ${selectedService === service.id ? colors.primary : colors.secondary}`,
-                    background: selectedService === service.id ? colors.secondary : colors.surface,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
-                >
-                  <div>
-                    <span style={{ fontWeight: 600, color: colors.textPrimary }}>{service.name}</span>
-                    <span style={{ fontSize: 12, color: colors.textMuted, marginLeft: 8 }}>{service.subtype}</span>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{ fontWeight: 600, color: colors.primary }}>${service.price}</span>
-                    <span style={{ fontSize: 12, color: colors.textMuted, display: 'block' }}>{service.duration} min</span>
-                  </div>
-                </motion.div>
-              ))}
+           {businessServices.slice(0, 5).map((service) => (
+                 <motion.div
+                   key={service.id}
+                    onClick={() => setSelectedService(service)}
+                    whileTap={{ scale: 0.98 }}
+                    style={{
+                      padding: 12,
+                      borderRadius: 12,
+                      border: `2px solid ${selectedService && selectedService.id === service.id ? colors.primary : colors.secondary}`,
+                      background: selectedService && selectedService.id === service.id ? colors.secondary : colors.surface,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                 >
+                   <div>
+                     <span style={{ fontWeight: 600, color: colors.textPrimary }}>{service.name}</span>
+                     <span style={{ fontSize: 12, color: colors.textMuted, marginLeft: 8 }}>{service.subtype}</span>
+                   </div>
+                   <div style={{ textAlign: 'right' }}>
+                     <span style={{ fontWeight: 600, color: colors.primary }}>${service.price}</span>
+                     <span style={{ fontSize: 12, color: colors.textMuted, display: 'block' }}>{service.duration} min</span>
+                   </div>
+                 </motion.div>
+               ))}
+               
+               {/* Selected Service Details */}
+               {selectedService && (
+                 <div style={{ marginTop: 20, padding: 16, background: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}` }}>
+                   <h3 style={{ fontSize: 18, marginBottom: 16, color: colors.textPrimary }}>
+                     Selected Service
+                   </h3>
+                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, background: colors.primary, borderRadius: 8 }}>
+                       <span style={{ fontSize: 16, fontWeight: 600, color: colors.textPrimary }}>{selectedService.name}</span>
+                       <span style={{ fontSize: 14, color: colors.surface }}>{selectedService.subtype}</span>
+                     </div>
+                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, background: colors.secondary, borderRadius: 8 }}>
+                       <span style={{ fontSize: 16, fontWeight: 600, color: colors.textPrimary }}>${selectedService.price}</span>
+                       <span style={{ fontSize: 14, color: colors.textSecondary }}>{selectedService.duration} min</span>
+                     </div>
+                      {/* Description is not in the current Service type, so we'll skip it for now */}
+                      {/* 
+                      {selectedService.description && (
+                        <div style={{ padding: 12, background: colors.surface, borderRadius: 8, marginTop: 8 }}>
+                          <p style={{ fontSize: 14, color: colors.textSecondary, lineHeight: 1.5 }}>{selectedService.description}</p>
+                        </div>
+                      )}
+                      */}
+                   </div>
+                 </div>
+               )}
             </div>
           </div>
 
@@ -197,8 +271,8 @@ export default function LocationPage() {
               Available Time Slots
             </h3>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {availableSlots.length > 0 ? (
-                availableSlots.map((slot) => (
+              {filteredSlots.length > 0 ? (
+                filteredSlots.map((slot) => (
                   <TimeSlotButton
                     key={slot.id}
                     slot={slot}
@@ -207,7 +281,7 @@ export default function LocationPage() {
                   />
                 ))
               ) : (
-                <p style={{ color: colors.textMuted, fontSize: 14 }}>No available slots for this date</p>
+                <p style={{ color: colors.textMuted, fontSize: 14 }}>No available slots for {format(new Date(selectedDate), 'MMM d')}</p>
               )}
             </div>
           </div>
@@ -247,7 +321,7 @@ export default function LocationPage() {
         <div>
           <span style={{ fontSize: 14, color: colors.textMuted }}>Total</span>
           <div style={{ fontSize: 20, fontWeight: 600, color: colors.textPrimary }}>
-            ${selectedService ? businessServices.find(s => s.id === selectedService)?.price : '0'}
+            ${selectedService ? selectedService.price : '0'}
           </div>
         </div>
         <Button

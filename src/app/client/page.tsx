@@ -7,12 +7,16 @@ import { Search, Zap, Clock, TrendingUp } from 'lucide-react';
 import { ClientBottomNav, CategoryCard, BusinessCard } from '@/components/UI';
 
 const colors = {
-  primary: '#FFD600',
-  surface: '#FFF7E0',
-  background: '#FFFDF5',
-  textPrimary: '#2A241C',
-  textSecondary: '#6B6358',
-  textMuted: '#9A9595',
+  primary: '#fdfcd2',
+  secondary: '#140755',
+  accent: '#ff6b9d',
+  accent2: '#00d4ff',
+  surface: '#12122a',
+  surfaceLight: '#1a1a3a',
+  background: '#0a0a1a',
+  textPrimary: '#fdfcd2',
+  textSecondary: '#b8b8d0',
+  textMuted: '#6a6a8a',
 };
 
 interface Business {
@@ -28,9 +32,10 @@ interface Business {
 }
 
 const CATEGORIES = [
-  { id: 'hair', name: 'Hair & Barber', icon: '💇', color: '#FFD600' },
-  { id: 'nails', name: 'Nails', icon: '💅', color: '#E8B4B8' },
-  { id: 'aesthetic', name: 'Aesthetic', icon: '✨', color: '#C9A87C' },
+  { id: 'hair', name: 'Hair', icon: 'Hair', color: '#fdfcd2' },
+  { id: 'nails', name: 'Nails', icon: 'Nails', color: '#ff6b9d' },
+  { id: 'skin', name: 'Skin', icon: 'Skin', color: '#00d4ff' },
+  { id: 'massage', name: 'Massage', icon: 'Massage', color: '#00e676' },
 ];
 
 export default function ClientHome() {
@@ -78,77 +83,107 @@ export default function ClientHome() {
   const approvedBusinesses = businesses.filter(b => b.status === 'approved').slice(0, 6);
 
   return (
-    <div style={{ background: colors.background, minHeight: '100vh', paddingBottom: 80 }}>
-      {/* Hero */}
+    <div style={{ background: colors.background, minHeight: '100vh', paddingBottom: 100 }}>
       <div className="hero">
-        <div style={{ padding: '16px 0' }}>
-          <div style={{ 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            gap: 8, 
-            background: '#2A241C',
-            padding: '8px 16px',
-            borderRadius: 20,
-            marginBottom: 20
-          }}>
-            <Zap size={14} fill={colors.primary} stroke={colors.primary} />
-            <span style={{ color: colors.primary, fontWeight: 700, fontSize: 13 }}>LastMinute</span>
-          </div>
+        <div style={{ padding: '16px 0', position: 'relative', zIndex: 1 }}>
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: 8, 
+              background: 'rgba(253, 252, 210, 0.1)',
+              backdropFilter: 'blur(10px)',
+              padding: '10px 18px',
+              borderRadius: 24,
+              marginBottom: 24,
+              border: '1px solid rgba(253, 252, 210, 0.2)'
+            }}
+          >
+            <Zap size={16} fill={colors.primary} stroke={colors.primary} />
+            <span style={{ color: colors.primary, fontWeight: 800, fontSize: 13, letterSpacing: '0.5px' }}>LASTMINUTE</span>
+          </motion.div>
 
-          <h1 style={{ fontSize: 28, fontFamily: 'Playfair Display, serif', marginBottom: 8, fontWeight: 800 }}>
-            Find <span style={{ color: colors.primary, textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>available</span> now
-          </h1>
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            style={{ fontSize: 32, fontFamily: 'Playfair Display, serif', marginBottom: 12, fontWeight: 900, lineHeight: 1.2 }}
+          >
+            Find your <br />
+            <span className="gradient-text" style={{ textShadow: 'none' }}>perfect service</span>
+          </motion.h1>
           
-          <div className="search-bar" onClick={() => router.push('/client/search')} style={{ cursor: 'pointer' }}>
-            <Search size={20} stroke={colors.textMuted} />
-            <span style={{ color: colors.textMuted, fontSize: 15 }}>Search services...</span>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="search-bar" 
+            onClick={() => router.push('/client/search')} 
+            style={{ cursor: 'pointer', marginTop: 20 }}
+          >
+            <Search size={22} stroke={colors.textMuted} />
+            <span style={{ color: colors.textMuted, fontSize: 15 }}>Search services, salons...</span>
+          </motion.div>
         </div>
       </div>
 
-      {/* Content */}
-      <div style={{ padding: '24px 20px', maxWidth: 430, margin: '0 auto' }}>
-        {/* Filters */}
-        <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 16 }}>
+      <div style={{ padding: '28px 20px', maxWidth: 430, margin: '0 auto' }}>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 20 }}
+        >
           <div className="filter-chip active">⚡ Available Now</div>
           {CATEGORIES.slice(0, 4).map((cat) => (
             <div key={cat.id} className="filter-chip" onClick={() => router.push('/client/search')}>
               {cat.name}
             </div>
           ))}
-        </div>
+        </motion.div>
 
-        {/* Urgency Banner */}
-        <div style={{ 
-          display: 'flex', 
-          gap: 12, 
-          marginBottom: 24,
-          padding: 14,
-          background: '#2A241C',
-          borderRadius: 20,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Zap size={16} fill={colors.primary} stroke={colors.primary} />
-            <span style={{ color: 'white', fontSize: 13, fontWeight: 600 }}>🔥 Filling fast</span>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          style={{ 
+            display: 'flex', 
+            gap: 16, 
+            marginBottom: 28,
+            padding: 18,
+            background: 'linear-gradient(135deg, rgba(255, 107, 157, 0.15) 0%, rgba(20, 7, 85, 0.4) 100%)',
+            borderRadius: 24,
+            border: '1px solid rgba(255, 107, 157, 0.2)'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Zap size={18} fill={colors.accent} stroke={colors.accent} />
+            <span style={{ color: colors.textPrimary, fontSize: 13, fontWeight: 700 }}>🔥 Filling fast</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Clock size={16} fill={colors.primary} stroke={colors.primary} />
-            <span style={{ color: 'white', fontSize: 13, fontWeight: 600 }}>⚡ 30 min wait</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Clock size={18} fill={colors.accent2} stroke={colors.accent2} />
+            <span style={{ color: colors.textPrimary, fontSize: 13, fontWeight: 700 }}>⚡ 30 min wait</span>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Categories */}
-        <h2 style={{ fontSize: 18, fontFamily: 'Playfair Display, serif', marginBottom: 14, fontWeight: 700 }}>
+        <motion.h2 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          style={{ fontSize: 20, fontFamily: 'Playfair Display, serif', marginBottom: 18, fontWeight: 800 }}
+        >
           Browse by service
-        </h2>
+        </motion.h2>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 28 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14, marginBottom: 32 }}>
           {CATEGORIES.map((category, index) => (
             <motion.div
               key={category.id}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
+              transition={{ duration: 0.3, delay: 0.45 + index * 0.05 }}
             >
               <CategoryCard
                 category={category}
@@ -158,21 +193,25 @@ export default function ClientHome() {
           ))}
         </div>
 
-        {/* Popular */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-          <h2 style={{ fontSize: 18, fontFamily: 'Playfair Display, serif', fontWeight: 700 }}>
-            🔥 Popular right now
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}
+        >
+          <h2 style={{ fontSize: 20, fontFamily: 'Playfair Display, serif', fontWeight: 800 }}>
+            <span style={{ color: colors.accent }}>🔥</span> Popular now
           </h2>
-          <TrendingUp size={18} stroke={colors.primary} />
-        </div>
+          <TrendingUp size={20} stroke={colors.accent} />
+        </motion.div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {approvedBusinesses.map((business, index) => (
             <motion.div
               key={business.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
+              transition={{ duration: 0.3, delay: 0.65 + index * 0.1 }}
             >
               <BusinessCard
                 business={business}
@@ -182,23 +221,26 @@ export default function ClientHome() {
           ))}
         </div>
 
-        {/* CTA */}
         <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1 }}
           whileHover={{ scale: 1.02 }}
           onClick={() => router.push('/client/search')}
           style={{
-            marginTop: 24,
-            padding: 24,
-            background: colors.primary,
-            borderRadius: 24,
+            marginTop: 32,
+            padding: 28,
+            background: 'linear-gradient(135deg, var(--primary) 0%, #fffb99 100%)',
+            borderRadius: 28,
             textAlign: 'center',
             cursor: 'pointer',
+            boxShadow: '0 8px 32px rgba(253, 252, 210, 0.3)',
           }}
         >
-          <p style={{ fontSize: 18, fontWeight: 800, fontFamily: 'Playfair Display, serif', color: colors.textPrimary }}>
+          <p style={{ fontSize: 20, fontWeight: 900, fontFamily: 'Playfair Display, serif', color: colors.secondary }}>
             ⚡ Book in 60 seconds
           </p>
-          <p style={{ fontSize: 14, color: colors.textSecondary, marginTop: 4 }}>
+          <p style={{ fontSize: 14, color: 'rgba(20, 7, 85, 0.7)', marginTop: 6, fontWeight: 600 }}>
             Tap to find available appointments
           </p>
         </motion.div>

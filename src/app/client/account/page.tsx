@@ -15,6 +15,7 @@ const colors = {
   textPrimary: '#2D2A2A',
   textSecondary: '#6B6565',
   textMuted: '#9A9595',
+  border: '#E8DDC7',
 };
 
 const menuItems = [
@@ -25,12 +26,19 @@ const menuItems = [
 
 export default function ClientAccount() {
   const router = useRouter();
-  const { currentUser, logout } = useStore();
+  const { currentUser, logout, businesses, services, bookings, reviews } = useStore();
 
   const handleLogout = () => {
     logout();
     router.push('/');
   };
+
+  // Calculate user statistics
+  const userBusinesses = businesses?.filter(b => b.userId === currentUser?.id) || [];
+  const userServices = services?.filter(s => s.businessId && 
+    userBusinesses.some(b => b.id === s.businessId)) || [];
+  const userBookings = bookings?.filter(b => b.userId === currentUser?.id) || [];
+  const userReviews = reviews?.filter(r => r.userId === currentUser?.id) || [];
 
   return (
     <div className="container" style={{ paddingBottom: 80 }}>
@@ -45,6 +53,7 @@ export default function ClientAccount() {
 
         {currentUser ? (
           <>
+            {/* Profile Header */}
             <div style={{
               background: colors.surface,
               borderRadius: 16,
@@ -70,38 +79,110 @@ export default function ClientAccount() {
               <p style={{ fontSize: 14, color: colors.textMuted }}>
                 {currentUser.email}
               </p>
+              <p style={{ fontSize: 14, color: colors.textSecondary }}>
+                {currentUser.role === 'business' ? 'Business Owner' : 
+                 currentUser.role === 'admin' ? 'Administrator' : 'Customer'}
+              </p>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
-              {menuItems.map((item) => (
-                <motion.div
-                  key={item.id}
-                  whileTap={{ scale: 0.98 }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 16,
-                    padding: 16,
-                    background: colors.surface,
-                    borderRadius: 12,
-                    cursor: 'pointer',
-                  }}
-                >
-                  <item.icon size={20} stroke={colors.textMuted} />
-                  <span style={{ flex: 1, color: colors.textPrimary }}>{item.label}</span>
-                  <ChevronRight size={16} stroke={colors.textMuted} />
-                </motion.div>
-              ))}
+            {/* Account Statistics */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 16, marginBottom: 24 }}>
+              <div style={{ background: colors.primary, borderRadius: 12, padding: 16, textAlign: 'center' }}>
+                <div style={{ fontSize: 20, fontWeight: 700, color: colors.textPrimary }}>
+                  {userBusinesses.length}
+                </div>
+                <div style={{ fontSize: 12, color: colors.surface }}>Businesses</div>
+              </div>
+              <div style={{ background: colors.primary, borderRadius: 12, padding: 16, textAlign: 'center' }}>
+                <div style={{ fontSize: 20, fontWeight: 700, color: colors.textPrimary }}>
+                  {userServices.length}
+                </div>
+                <div style={{ fontSize: 12, color: colors.surface }}>Services</div>
+              </div>
+              <div style={{ background: colors.primary, borderRadius: 12, padding: 16, textAlign: 'center' }}>
+                <div style={{ fontSize: 20, fontWeight: 700, color: colors.textPrimary }}>
+                  {userBookings.length}
+                </div>
+                <div style={{ fontSize: 12, color: colors.surface }}>Bookings</div>
+              </div>
+              <div style={{ background: colors.primary, borderRadius: 12, padding: 16, textAlign: 'center' }}>
+                <div style={{ fontSize: 20, fontWeight: 700, color: colors.textPrimary }}>
+                  {userReviews.length}
+                </div>
+                <div style={{ fontSize: 12, color: colors.surface }}>Reviews</div>
+              </div>
             </div>
 
-            <Button
-              variant="secondary"
-              onClick={handleLogout}
-              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-            >
-              <LogOut size={20} />
-              Sign Out
-            </Button>
+            {/* Recent Activity */}
+            <div style={{ marginBottom: 24 }}>
+              <h2 style={{ fontSize: 20, marginBottom: 16, color: colors.textPrimary }}>
+                Recent Activity
+              </h2>
+              {userBookings.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {userBookings.slice(0, 3).map((booking) => {
+                    // Find the service for this booking
+                    const service = services?.find(s => s.id === booking.serviceId);
+                    return (
+                      <div key={booking.id} style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: 12,
+                        background: colors.surface,
+                        borderRadius: 12,
+                        border: `1px solid ${colors.border}`
+                      }}>
+                        <div>
+                          <h3 style={{ fontSize: 16, marginBottom: 4, color: colors.textPrimary }}>
+                            {service?.name || 'Service'}
+                          </h3>
+                          <p style={{ fontSize: 12, color: colors.textSecondary }}>
+                            {new Date(booking.createdAt).toLocaleDateString()} • 
+                            {booking.status === 'confirmed' ? 'Confirmed' : 
+                             booking.status === 'completed' ? 'Completed' : 
+                             booking.status === 'cancelled' ? 'Cancelled' : booking.status}
+                          </p>
+                        </div>
+                        <div style={{ fontSize: 18, fontWeight: 700, color: colors.primary }}>
+                          ${booking.totalPrice}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p style={{ color: colors.textMuted, textAlign: 'center' }}>
+                  No recent bookings
+                </p>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <Button
+                onClick={() => router.push('/client/settings')}
+                style={{ width: '100%' }}
+              >
+                <Settings size={20} />
+                Account Settings
+              </Button>
+              <Button
+                onClick={() => router.push('/client/help')}
+                style={{ width: '100%' }}
+              >
+                <HelpCircle size={20} />
+                Help & Support
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={handleLogout}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+              >
+                <LogOut size={20} />
+                Sign Out
+              </Button>
+            </div>
           </>
         ) : (
           <div style={{ textAlign: 'center', padding: 40 }}>

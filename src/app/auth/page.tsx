@@ -1,21 +1,25 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { User, Store, Shield, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { registerUser, loginUser } from '@/lib/actions';
 import { useAuth } from '@/lib/authContext';
 
 const COLORS = {
-  primary: '#FFD600',
-  surface: '#FFF7E0',
-  background: '#FFFDF5',
-  textPrimary: '#2A241C',
-  textSecondary: '#6B6358',
-  textMuted: '#9A9595',
-  border: '#E8DDC7',
-  success: '#059669',
-  error: '#DC2626',
+  primary: '#fdfcd2',
+  secondary: '#140755',
+  accent: '#ff6b9d',
+  surface: '#12122a',
+  surfaceLight: '#1a1a3a',
+  background: '#0a0a1a',
+  textPrimary: '#fdfcd2',
+  textSecondary: '#b8b8d0',
+  textMuted: '#6a6a8a',
+  border: '#2a2a4a',
+  success: '#00e676',
+  error: '#ff5252',
 };
 
 function BusinessFields({ 
@@ -30,47 +34,48 @@ function BusinessFields({
   category: string; setCategory: (v: string) => void;
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div>
-        <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Business Name *</label>
+        <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14, color: COLORS.textSecondary }}>Business Name *</label>
         <input 
           type="text" 
           value={businessName} 
           onChange={(e) => setBusinessName(e.target.value)}
-          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
+          style={{ width: '100%', padding: '16px 18px', borderRadius: 16, border: `1px solid ${COLORS.border}`, background: COLORS.surface, fontSize: 16, color: COLORS.textPrimary }} 
           placeholder="Studio 22 Barbershop" 
         />
       </div>
       <div>
-        <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Contact Person *</label>
+        <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14, color: COLORS.textSecondary }}>Contact Person *</label>
         <input 
           type="text" 
           value={contactPerson} 
           onChange={(e) => setContactPerson(e.target.value)}
-          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
+          style={{ width: '100%', padding: '16px 18px', borderRadius: 16, border: `1px solid ${COLORS.border}`, background: COLORS.surface, fontSize: 16, color: COLORS.textPrimary }} 
           placeholder="John Doe" 
         />
       </div>
       <div>
-        <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Address *</label>
+        <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14, color: COLORS.textSecondary }}>Address *</label>
         <input 
           type="text" 
           value={address} 
           onChange={(e) => setAddress(e.target.value)}
-          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
+          style={{ width: '100%', padding: '16px 18px', borderRadius: 16, border: `1px solid ${COLORS.border}`, background: COLORS.surface, fontSize: 16, color: COLORS.textPrimary }} 
           placeholder="Plovdiv, Bulgaria" 
         />
       </div>
       <div>
-        <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Category</label>
+        <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14, color: COLORS.textSecondary }}>Category</label>
         <select 
           value={category} 
           onChange={(e) => setCategory(e.target.value)}
-          style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }}
+          style={{ width: '100%', padding: '16px 18px', borderRadius: 16, border: `1px solid ${COLORS.border}`, background: COLORS.surface, fontSize: 16, color: COLORS.textPrimary }}
         >
-          <option value="hair">Hair & Barber</option>
+          <option value="hair">Hair</option>
           <option value="nails">Nails</option>
-          <option value="aesthetic">Aesthetic</option>
+          <option value="skin">Skin</option>
+          <option value="massage">Massage</option>
         </select>
       </div>
     </div>
@@ -167,106 +172,130 @@ export default function AuthPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.background, padding: '60px 20px' }}>
-      <div>
-        <button onClick={() => router.push('/')} style={{ background: 'none', border: 'none', cursor: 'pointer', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+    <div style={{ minHeight: '100vh', background: COLORS.background, padding: '40px 20px' }}>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <button onClick={() => router.push('/')} style={{ background: 'none', border: 'none', cursor: 'pointer', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
           <ArrowLeft size={20} color={COLORS.textMuted} />
           <span style={{ fontSize: 14, color: COLORS.textMuted }}>Back</span>
         </button>
 
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <h1 style={{ fontSize: 28, fontFamily: 'Playfair Display, serif', fontWeight: 800, marginBottom: 8 }}>
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{ fontSize: 32, fontFamily: 'Playfair Display, serif', fontWeight: 900, marginBottom: 8, color: COLORS.textPrimary }}
+          >
             LastMinute
-          </h1>
-          <p style={{ color: COLORS.textSecondary }}>Beauty booking in Plovdiv</p>
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            style={{ color: COLORS.textSecondary, fontSize: 15, fontWeight: 500 }}
+          >
+            Beauty booking in Plovdiv ⚡
+          </motion.p>
         </div>
 
-        {/* Role Selection */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          style={{ display: 'flex', gap: 10, marginBottom: 28 }}
+        >
           <button onClick={() => handleRoleChange('client')} style={{
-            flex: 1, padding: '12px 8px', borderRadius: 14, whiteSpace: 'nowrap',
-            background: role === 'client' ? COLORS.primary : 'white',
-            border: `2px solid ${role === 'client' ? COLORS.primary : COLORS.border}`, 
-            fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+            flex: 1, padding: '14px 10px', borderRadius: 16, whiteSpace: 'nowrap',
+            background: role === 'client' ? `linear-gradient(135deg, ${COLORS.primary} 0%, #fffb99 100%)` : COLORS.surface,
+            border: `2px solid ${role === 'client' ? 'transparent' : COLORS.border}`, 
+            color: role === 'client' ? COLORS.secondary : COLORS.textMuted, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 14
           }}>
             <User size={16} />Client
           </button>
           <button onClick={() => handleRoleChange('business')} style={{
-            flex: 1, padding: '12px 8px', borderRadius: 14, whiteSpace: 'nowrap',
-            background: role === 'business' ? COLORS.primary : 'white',
-            border: `2px solid ${role === 'business' ? COLORS.primary : COLORS.border}`, 
-            fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+            flex: 1, padding: '14px 10px', borderRadius: 16, whiteSpace: 'nowrap',
+            background: role === 'business' ? `linear-gradient(135deg, ${COLORS.primary} 0%, #fffb99 100%)` : COLORS.surface,
+            border: `2px solid ${role === 'business' ? 'transparent' : COLORS.border}`, 
+            color: role === 'business' ? COLORS.secondary : COLORS.textMuted, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 14
           }}>
             <Store size={16} />Business
           </button>
           <button onClick={() => handleRoleChange('admin')} style={{
-            flex: 1, padding: '12px 8px', borderRadius: 14, whiteSpace: 'nowrap',
-            background: role === 'admin' ? COLORS.primary : 'white',
-            border: `2px solid ${role === 'admin' ? COLORS.primary : COLORS.border}`, 
-            fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+            flex: 1, padding: '14px 10px', borderRadius: 16, whiteSpace: 'nowrap',
+            background: role === 'admin' ? `linear-gradient(135deg, ${COLORS.primary} 0%, #fffb99 100%)` : COLORS.surface,
+            border: `2px solid ${role === 'admin' ? 'transparent' : COLORS.border}`, 
+            color: role === 'admin' ? COLORS.secondary : COLORS.textMuted, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 14
           }}>
             <Shield size={16} />Admin
           </button>
-        </div>
+        </motion.div>
 
-        {/* Login/Signup Toggle */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 24, background: 'white', padding: 4, borderRadius: 16 }}>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          style={{ display: 'flex', gap: 8, marginBottom: 28, background: COLORS.surface, padding: 6, borderRadius: 20 }}
+        >
           <button onClick={() => setMode('login')} style={{
-            flex: 1, padding: '12px 24px', borderRadius: 14, border: 'none',
-            background: mode === 'login' ? COLORS.primary : 'transparent',
-            color: COLORS.textPrimary, fontWeight: 700, cursor: 'pointer'
+            flex: 1, padding: '14px 28px', borderRadius: 16, border: 'none',
+            background: mode === 'login' ? `linear-gradient(135deg, ${COLORS.primary} 0%, #fffb99 100%)` : 'transparent',
+            color: mode === 'login' ? COLORS.secondary : COLORS.textMuted, fontWeight: 700, cursor: 'pointer', fontSize: 15
           }}>
             Sign In
           </button>
           <button onClick={() => setMode('signup')} style={{
-            flex: 1, padding: '12px 24px', borderRadius: 14, border: 'none',
-            background: mode === 'signup' ? COLORS.primary : 'transparent',
-            color: COLORS.textPrimary, fontWeight: 700, cursor: 'pointer'
+            flex: 1, padding: '14px 28px', borderRadius: 16, border: 'none',
+            background: mode === 'signup' ? `linear-gradient(135deg, ${COLORS.primary} 0%, #fffb99 100%)` : 'transparent',
+            color: mode === 'signup' ? COLORS.secondary : COLORS.textMuted, fontWeight: 700, cursor: 'pointer', fontSize: 15
           }}>
             Sign Up
           </button>
-        </div>
+        </motion.div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <motion.form 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          onSubmit={handleSubmit} 
+          style={{ display: 'flex', flexDirection: 'column', gap: 18 }}
+        >
           {mode === 'signup' && role === 'client' && (
             <div>
-              <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Name</label>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14, color: COLORS.textSecondary }}>Name</label>
               <input 
                 type="text" 
                 value={name} 
                 onChange={(e) => setName(e.target.value)}
-                style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
+                style={{ width: '100%', padding: '16px 18px', borderRadius: 16, border: `1px solid ${COLORS.border}`, background: COLORS.surface, fontSize: 16, color: COLORS.textPrimary }} 
                 placeholder="Your name" 
               />
             </div>
           )}
 
           <div>
-            <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Email</label>
+            <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14, color: COLORS.textSecondary }}>Email</label>
             <input 
               type="email" 
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
               required
-              style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
+              style={{ width: '100%', padding: '16px 18px', borderRadius: 16, border: `1px solid ${COLORS.border}`, background: COLORS.surface, fontSize: 16, color: COLORS.textPrimary }} 
               placeholder="you@example.com" 
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Password</label>
+            <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14, color: COLORS.textSecondary }}>Password</label>
             <div style={{ position: 'relative' }}>
               <input 
                 type={showPassword ? 'text' : 'password'} 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
                 required
-                style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16, paddingRight: 48 }} 
+                style={{ width: '100%', padding: '16px 18px', borderRadius: 16, border: `1px solid ${COLORS.border}`, background: COLORS.surface, fontSize: 16, color: COLORS.textPrimary, paddingRight: 52 }} 
                 placeholder={role === 'admin' ? 'admin123' : '••••••••'} 
               />
               <button type="button" onClick={() => setShowPassword(!showPassword)} style={{
-                position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
                 background: 'none', border: 'none', cursor: 'pointer'
               }}>
                 {showPassword ? <EyeOff size={20} color={COLORS.textMuted} /> : <Eye size={20} color={COLORS.textMuted} />}
@@ -276,12 +305,12 @@ export default function AuthPage() {
 
           {mode === 'signup' && role === 'client' && (
             <div>
-              <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Phone (optional)</label>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14, color: COLORS.textSecondary }}>Phone (optional)</label>
               <input 
                 type="tel" 
                 value={phone} 
                 onChange={(e) => setPhone(e.target.value)}
-                style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
+                style={{ width: '100%', padding: '16px 18px', borderRadius: 16, border: `1px solid ${COLORS.border}`, background: COLORS.surface, fontSize: 16, color: COLORS.textPrimary }} 
                 placeholder="+359..." 
               />
             </div>
@@ -289,19 +318,18 @@ export default function AuthPage() {
 
           {mode === 'signup' && role === 'admin' && (
             <div>
-              <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14 }}>Admin Access Code *</label>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: 14, color: COLORS.textSecondary }}>Admin Access Code *</label>
               <input 
                 type="password" 
                 value={adminKey} 
                 onChange={(e) => setAdminKey(e.target.value)}
                 required
-                style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${COLORS.border}`, background: 'white', fontSize: 16 }} 
+                style={{ width: '100%', padding: '16px 18px', borderRadius: 16, border: `1px solid ${COLORS.border}`, background: COLORS.surface, fontSize: 16, color: COLORS.textPrimary }} 
                 placeholder="Enter admin code" 
               />
             </div>
           )}
 
-          {/* Role-specific fields - always rendered, just conditionally visible content */}
           {mode === 'signup' && role === 'business' && (
             <BusinessFields 
               businessName={businessName} setBusinessName={setBusinessName}
@@ -311,25 +339,25 @@ export default function AuthPage() {
             />
           )}
 
-          {mode === 'signup' && role === 'admin' && (
-            <div style={{ padding: 16, borderRadius: 14, background: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
-              <p style={{ fontSize: 14, color: COLORS.textSecondary, margin: 0 }}>
-                Enter admin access code to continue
-              </p>
-            </div>
-          )}
+          {error && <p style={{ color: COLORS.error, fontSize: 14, fontWeight: 600 }}>{error}</p>}
 
-          {error && <p style={{ color: COLORS.error, fontSize: 14 }}>{error}</p>}
-
-          <button type="submit" disabled={loading} style={{
-            width: '100%', padding: '16px', borderRadius: 14, border: 'none', background: COLORS.primary,
-            color: COLORS.textPrimary, fontSize: 16, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
-            opacity: loading ? 0.7 : 1
-          }}>
+          <motion.button 
+            type="submit" 
+            disabled={loading} 
+            whileHover={{ scale: loading ? 1 : 1.02 }}
+            whileTap={{ scale: loading ? 1 : 0.98 }}
+            style={{
+              width: '100%', padding: '18px', borderRadius: 20, border: 'none', 
+              background: `linear-gradient(135deg, ${COLORS.primary} 0%, #fffb99 100%)`,
+              color: COLORS.secondary, fontSize: 16, fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.7 : 1, marginTop: 8,
+              boxShadow: '0 8px 24px rgba(253, 252, 210, 0.3)'
+            }}
+          >
             {loading ? 'Please wait...' : mode === 'login' ? 'Sign In' : role === 'business' ? 'Create Business Account' : role === 'admin' ? 'Access Admin' : 'Create Account'}
-          </button>
-        </form>
-      </div>
+          </motion.button>
+        </motion.form>
+      </motion.div>
     </div>
   );
 }

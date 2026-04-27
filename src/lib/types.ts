@@ -27,6 +27,14 @@ export interface Business {
   category: string;
   imageUrl?: string;
   createdAt: Date;
+  
+  // Relations
+  services?: Service[];
+  
+  // Extended fields for search results
+  serviceCount?: number;
+  priceRange?: { min: number; max: number };
+  todaySlots?: number;
 }
 
 export interface BankAccount {

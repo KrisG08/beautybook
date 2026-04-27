@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation';
 import { Sparkles, ArrowRight } from 'lucide-react';
 
 const COLORS = {
-  primary: '#FFD600',
-  background: '#FFFDF5',
-  textPrimary: '#2A241C',
-  textSecondary: '#6B6358',
-  border: '#E8DDC7',
+  primary: '#fdfcd2',
+  secondary: '#140755',
+  accent: '#ff6b9d',
+  background: '#0a0a1a',
+  textPrimary: '#fdfcd2',
+  textSecondary: '#b8b8d0',
+  border: '#2a2a4a',
 };
 
 export default function LandingPage() {
@@ -19,35 +21,60 @@ export default function LandingPage() {
     <div style={{ minHeight: '100vh', background: COLORS.background, padding: '60px 20px' }}>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
         <div style={{ textAlign: 'center', paddingTop: 40, paddingBottom: 60 }}>
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', duration: 0.8 }}>
+          <motion.div initial={{ scale: 0, rotate: -180 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', duration: 1, bounce: 0.5 }}>
             <div style={{
-              width: 80, height: 80, borderRadius: 24, background: COLORS.primary,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px'
+              width: 100, height: 100, borderRadius: 32, 
+              background: 'linear-gradient(135deg, #fdfcd2 0%, #fffb99 50%, #ff6b9d 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 28px',
+              boxShadow: '0 8px 40px rgba(253, 252, 210, 0.3), 0 0 60px rgba(255, 107, 157, 0.2)'
             }}>
-              <Sparkles size={40} color={COLORS.textPrimary} />
+              <Sparkles size={48} color={COLORS.secondary} />
             </div>
           </motion.div>
           
-          <h1 style={{ fontSize: 36, fontFamily: 'Playfair Display, serif', fontWeight: 800, marginBottom: 8 }}>
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            style={{ fontSize: 42, fontFamily: 'Playfair Display, serif', fontWeight: 900, marginBottom: 12, color: COLORS.textPrimary }}
+          >
             LastMinute
-          </h1>
-          <p style={{ fontSize: 18, color: COLORS.textSecondary, marginBottom: 40 }}>
-            Book beauty services in seconds
-          </p>
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            style={{ fontSize: 18, color: COLORS.textSecondary, marginBottom: 48, fontWeight: 500 }}
+          >
+            Book beauty services in seconds ⚡
+          </motion.p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 320, margin: '0 auto' }}>
-            <motion.button onClick={() => router.push('/auth')} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{
-              width: '100%', padding: '18px', borderRadius: 16, border: 'none', background: COLORS.primary,
-              color: COLORS.textPrimary, fontSize: 18, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 20px rgba(255, 214, 0, 0.3)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 340, margin: '0 auto' }}
+          >
+            <motion.button onClick={() => router.push('/auth')} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} style={{
+              width: '100%', padding: '20px', borderRadius: 24, border: 'none', 
+              background: 'linear-gradient(135deg, #fdfcd2 0%, #fffb99 100%)',
+              color: COLORS.secondary, fontSize: 18, fontWeight: 800, cursor: 'pointer', 
+              boxShadow: '0 8px 32px rgba(253, 252, 210, 0.4)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+              textTransform: 'uppercase', letterSpacing: '0.5px'
             }}>
-              Get Started <ArrowRight size={20} />
+              Get Started <ArrowRight size={22} />
             </motion.button>
-          </div>
+          </motion.div>
 
-          <p style={{ marginTop: 32, fontSize: 13, color: COLORS.textSecondary }}>
-            Trusted by 500+ beauty businesses in Plovdiv
-          </p>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            style={{ marginTop: 40, fontSize: 14, color: COLORS.textSecondary, fontWeight: 500 }}
+          >
+            ✨ Trusted by 500+ beauty businesses in Plovdiv
+          </motion.p>
         </div>
       </motion.div>
     </div>

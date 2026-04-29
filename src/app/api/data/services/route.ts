@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   const businessId = searchParams.get('businessId');
 
   if (!businessId) {
-    return NextResponse.json({ error: 'Missing businessId' }, { status: 400 });
+    return NextResponse.json([]);
   }
 
   const services = await prisma.service.findMany({ where: { businessId }, orderBy: { name: 'asc' } });

@@ -19,10 +19,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
     }
 
-    const token = sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    // If user has an associated business, ensure role is 'business'
+    let finalRole = user.role;
+    if (finalRole !== 'admin') {
+      const associatedBusiness = await prisma.business.findUnique({
+        where: { userId: user.id }
+      });
+      if (associatedBusiness && finalRole !== 'business') {
+        finalRole = 'business';
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { role: 'business' }
+        });
+      }
+    }
+
+    const token = sign({ userId: user.id, role: finalRole }, JWT_SECRET, { expiresIn: '7d' });
 
     const response = NextResponse.json({ 
-      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+      user: { id: user.id, name: user.name, email: user.email, role: finalRole },
       token
     });
     

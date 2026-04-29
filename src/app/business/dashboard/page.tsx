@@ -14,6 +14,7 @@ import {
   getReviewsByBusinessId, updateUserRole
 } from '@/lib/actions';
 import { useAuth } from '@/lib/authContext';
+import { BusinessBottomNav } from '@/components/UI';
 import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from 'date-fns';
 
 const COLORS = {
@@ -83,6 +84,25 @@ export default function BusinessDashboard() {
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    const stored = localStorage.getItem('user');
+    if (!stored) {
+      router.push('/auth');
+      return;
+    }
+    const userData = JSON.parse(stored);
+    if (userData.role !== 'business') {
+      router.push(userData.role === 'admin' ? '/admin' : '/client');
+      return;
+    }
+  }, [mounted]);
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
@@ -95,24 +115,29 @@ export default function BusinessDashboard() {
   const [selectedSlotTime, setSelectedSlotTime] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!mounted || !user) return;
     loadData();
-  }, []);
+  }, [mounted, user]);
 
   const loadData = async () => {
     if (!user) return;
     setLoading(true);
-    const biz = await getBusinessByUserId(user.id);
-    setBusiness(biz as any);
-    
-    if (biz) {
-      const [svcs, slots, bks] = await Promise.all([
-        getServicesByBusinessId(biz.id),
-        getTimeSlotsByBusinessId(biz.id),
-        getBookingsByBusinessId(biz.id)
-      ]);
-      setServices(svcs as any);
-      setTimeSlots(slots);
-      setBookings(bks as any);
+    try {
+      const biz = await getBusinessByUserId(user.id);
+      setBusiness(biz);
+      
+      if (biz && biz.id) {
+        const [svcs, slots, bks] = await Promise.all([
+          getServicesByBusinessId(biz.id),
+          getTimeSlotsByBusinessId(biz.id),
+          getBookingsByBusinessId(biz.id)
+        ]);
+        setServices(svcs || []);
+        setTimeSlots(slots || []);
+        setBookings(bks || []);
+      }
+    } catch (err) {
+      console.error('Error loading data:', err);
     }
     setLoading(false);
   };
@@ -185,7 +210,7 @@ export default function BusinessDashboard() {
           <p style={{ color: COLORS.textMuted, marginBottom: 24 }}>Apply to list your business</p>
           <button onClick={() => router.push('/business/apply')} style={{
             padding: '14px 28px', background: COLORS.primary, border: 'none', borderRadius: 14,
-            fontWeight: 700, cursor: 'pointer'
+            color: COLORS.secondary, fontWeight: 700, cursor: 'pointer'
           }}>Apply Now</button>
         </div>
       </div>
@@ -223,27 +248,27 @@ export default function BusinessDashboard() {
       {/* Header */}
       <div style={{ background: `linear-gradient(135deg, ${COLORS.primary} 0%, #FFE066 100%)`, padding: '20px', borderRadius: '0 0 32px 32px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h1 style={{ fontSize: 22, fontFamily: 'Playfair Display, serif', fontWeight: 700, margin: 0 }}>{business.name}</h1>
+          <h1 style={{ fontSize: 22, fontFamily: 'Playfair Display, serif', fontWeight: 700, margin: 0, color: COLORS.secondary }}>{business.name}</h1>
           <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-            <LogOut size={22} color={COLORS.textPrimary} />
+            <LogOut size={22} color={COLORS.secondary} />
           </button>
         </div>
         
         {/* Quick Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-          <div style={{ background: 'white', borderRadius: 14, padding: 14, textAlign: 'center' }}>
-            <DollarSign size={18} color={COLORS.success} style={{ margin: '0 auto 6px' }} />
-            <div style={{ fontSize: 18, fontWeight: 800 }}>${todayEarnings}</div>
+          <div style={{ background: COLORS.secondary, borderRadius: 14, padding: 14, textAlign: 'center' }}>
+            <DollarSign size={18} color={COLORS.primary} style={{ margin: '0 auto 6px' }} />
+            <div style={{ fontSize: 18, fontWeight: 800, color: COLORS.primary }}>€{todayEarnings}</div>
             <div style={{ fontSize: 10, color: COLORS.textMuted }}>Today</div>
           </div>
-          <div style={{ background: 'white', borderRadius: 14, padding: 14, textAlign: 'center' }}>
+          <div style={{ background: COLORS.secondary, borderRadius: 14, padding: 14, textAlign: 'center' }}>
             <Calendar size={18} color={COLORS.primary} style={{ margin: '0 auto 6px' }} />
-            <div style={{ fontSize: 18, fontWeight: 800 }}>{upcomingBookings.length}</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: COLORS.primary }}>{upcomingBookings.length}</div>
             <div style={{ fontSize: 10, color: COLORS.textMuted }}>Pending</div>
           </div>
-          <div style={{ background: 'white', borderRadius: 14, padding: 14, textAlign: 'center' }}>
-            <Users size={18} color={COLORS.textSecondary} style={{ margin: '0 auto 6px' }} />
-            <div style={{ fontSize: 18, fontWeight: 800 }}>{bookings.length}</div>
+          <div style={{ background: COLORS.secondary, borderRadius: 14, padding: 14, textAlign: 'center' }}>
+            <Users size={18} color={COLORS.primary} style={{ margin: '0 auto 6px' }} />
+            <div style={{ fontSize: 18, fontWeight: 800, color: COLORS.primary }}>{bookings.length}</div>
             <div style={{ fontSize: 10, color: COLORS.textMuted }}>Total</div>
           </div>
         </div>
@@ -255,10 +280,10 @@ export default function BusinessDashboard() {
           <button key={tab.id} onClick={() => setActiveTab(tab.id as Tab)} style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '10px 14px',
             borderRadius: 14, border: 'none', background: activeTab === tab.id ? COLORS.primary : 'transparent',
-            color: COLORS.textPrimary, cursor: 'pointer', flexShrink: 0
+            color: activeTab === tab.id ? COLORS.secondary : COLORS.textPrimary, cursor: 'pointer', flexShrink: 0
           }}>
-            <tab.icon size={18} />
-            <span style={{ fontSize: 11, fontWeight: 600 }}>{tab.label}</span>
+            <tab.icon size={18} stroke={activeTab === tab.id ? COLORS.secondary : 'currentColor'} />
+            <span style={{ fontSize: 11, fontWeight: 600, color: activeTab === tab.id ? COLORS.secondary : COLORS.textPrimary }}>{tab.label}</span>
           </button>
         ))}
       </div>
@@ -268,28 +293,28 @@ export default function BusinessDashboard() {
         {/* HOME */}
         {activeTab === 'home' && (
           <div>
-            <h2 style={{ fontSize: 18, fontFamily: 'Playfair Display, serif', marginBottom: 16 }}>⚡ Today's Schedule</h2>
+            <h2 style={{ fontSize: 18, fontFamily: 'Playfair Display, serif', marginBottom: 16, color: COLORS.textPrimary }}>⚡ Today's Schedule</h2>
             
             {todayBookings.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {todayBookings.slice(0, 5).map(booking => (
                   <div key={booking.id} style={{
-                    background: 'white', borderRadius: 16, padding: 16, border: `1px solid ${COLORS.border}`
+                    background: COLORS.surface, borderRadius: 16, padding: 16, border: `1px solid ${COLORS.border}`
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ width: 44, height: 44, borderRadius: 14, background: COLORS.surface, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <User size={20} />
+                        <div style={{ width: 44, height: 44, borderRadius: 14, background: COLORS.surfaceLight, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <User size={20} color={COLORS.textPrimary} />
                         </div>
                         <div>
-                          <div style={{ fontWeight: 700 }}>{booking.user.name}</div>
+                          <div style={{ fontWeight: 700, color: COLORS.textPrimary }}>{booking.user.name}</div>
                           <div style={{ fontSize: 12, color: COLORS.textMuted }}>{booking.service.name} • {booking.slot.startTime}</div>
                         </div>
                       </div>
                       <span style={{
                         padding: '4px 12px', borderRadius: 10, fontSize: 12, fontWeight: 600,
-                        background: booking.status === 'confirmed' ? '#D1FAE5' : '#FEE2E2',
-                        color: booking.status === 'confirmed' ? COLORS.success : COLORS.error
+                        background: booking.status === 'confirmed' ? '#00e67633' : '#ff6b9d33',
+                        color: booking.status === 'confirmed' ? '#00e676' : COLORS.accent
                       }}>
                         {booking.status}
                       </span>
@@ -297,10 +322,10 @@ export default function BusinessDashboard() {
                     {booking.status === 'confirmed' && (
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button onClick={() => handleBookingAction(booking.id, 'completed')} style={{
-                          flex: 1, padding: '10px', borderRadius: 12, border: 'none', background: COLORS.primary, fontWeight: 700, cursor: 'pointer'
+                          flex: 1, padding: '10px', borderRadius: 12, border: 'none', background: COLORS.primary, color: COLORS.secondary, fontWeight: 700, cursor: 'pointer'
                         }}>✓ Complete</button>
                         <button onClick={() => handleBookingAction(booking.id, 'cancelled')} style={{
-                          flex: 1, padding: '10px', borderRadius: 12, border: `1px solid ${COLORS.border}`, background: 'white', color: COLORS.error, fontWeight: 700, cursor: 'pointer'
+                          flex: 1, padding: '10px', borderRadius: 12, border: `1px solid ${COLORS.border}`, background: COLORS.surfaceLight, color: COLORS.accent, fontWeight: 700, cursor: 'pointer'
                         }}>✕ Cancel</button>
                       </div>
                     )}
@@ -316,9 +341,9 @@ export default function BusinessDashboard() {
 
             {/* Alerts */}
             {daySlots.length === 0 && (
-              <div style={{ marginTop: 20, padding: 16, borderRadius: 16, background: '#FEF3C7', border: '1px solid #FCD34D' }}>
-                <strong>⚠️ No slots available today</strong>
-                <p style={{ fontSize: 14, marginTop: 8 }}>Add time slots to start receiving bookings</p>
+              <div style={{ marginTop: 20, padding: 16, borderRadius: 16, background: COLORS.surface, border: `1px solid ${COLORS.accent}` }}>
+                <strong style={{ color: COLORS.accent }}>⚠️ No slots available today</strong>
+                <p style={{ fontSize: 14, marginTop: 8, color: COLORS.textSecondary }}>Add time slots to start receiving bookings</p>
               </div>
             )}
           </div>
@@ -348,11 +373,11 @@ export default function BusinessDashboard() {
                   <div key={dateStr} onClick={() => setSelectedDate(date)} style={{
                     minWidth: 50, padding: '12px 8px', borderRadius: 14,
                     background: isSelected ? COLORS.primary : 'white',
-                    color: isSelected ? COLORS.textPrimary : COLORS.textPrimary,
+                    color: isSelected ? COLORS.secondary : COLORS.textPrimary,
                     textAlign: 'center', cursor: 'pointer', border: `1px solid ${COLORS.border}`, flexShrink: 0
                   }}>
-                    <div style={{ fontSize: 11, fontWeight: 600 }}>{format(date, 'EEE')}</div>
-                    <div style={{ fontSize: 18, fontWeight: 800 }}>{format(date, 'd')}</div>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: isSelected ? COLORS.secondary : COLORS.textPrimary }}>{format(date, 'EEE')}</div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: isSelected ? COLORS.secondary : COLORS.textPrimary }}>{format(date, 'd')}</div>
                     {slots.length > 0 && <div style={{ fontSize: 9, color: COLORS.textMuted }}>{slots.length}</div>}
                   </div>
                 );
@@ -372,13 +397,13 @@ export default function BusinessDashboard() {
                   </button>
                 </div>
               )) : (
-                <p style={{ color: COLORS.textMuted }}>No slots available</p>
+                <p style={{ color: COLORS.textMuted, background: COLORS.surface, padding: 12, borderRadius: 12 }}>No slots available</p>
               )}
             </div>
 
             <button onClick={() => setShowSlotModal(true)} style={{
               width: '100%', marginTop: 20, padding: 14, borderRadius: 14, border: 'none',
-              background: COLORS.primary, fontWeight: 700, cursor: 'pointer'
+              background: COLORS.primary, color: COLORS.secondary, fontWeight: 700, cursor: 'pointer'
             }}>
               + Add Time Slot
             </button>
@@ -391,7 +416,7 @@ export default function BusinessDashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h2 style={{ fontSize: 18, fontFamily: 'Playfair Display, serif', margin: 0 }}>Services</h2>
               <button onClick={() => { setEditingService(null); setServiceForm({ name: '', duration: 30, price: 0, description: '', active: true }); setShowServiceModal(true); }} style={{
-                padding: '10px 16px', borderRadius: 12, border: 'none', background: COLORS.primary, fontWeight: 700, cursor: 'pointer'
+                padding: '10px 16px', borderRadius: 12, border: 'none', background: COLORS.primary, color: COLORS.secondary, fontWeight: 700, cursor: 'pointer'
               }}>
                 + Add
               </button>
@@ -400,16 +425,16 @@ export default function BusinessDashboard() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {services.map(service => (
                 <div key={service.id} style={{
-                  background: 'white', borderRadius: 16, padding: 16, border: `1px solid ${COLORS.border}`
+                  background: COLORS.surface, borderRadius: 16, padding: 16, border: `1px solid ${COLORS.border}`
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>{service.name}</h3>
+                        <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: COLORS.textPrimary }}>{service.name}</h3>
                         {!service.active && <span style={{ fontSize: 10, color: COLORS.error }}>Inactive</span>}
                       </div>
                       <div style={{ fontSize: 14, color: COLORS.textMuted, marginTop: 4 }}>{service.duration} min</div>
-                      <div style={{ fontSize: 18, fontWeight: 800, marginTop: 8 }}>${service.price}</div>
+                      <div style={{ fontSize: 18, fontWeight: 800, marginTop: 8, color: COLORS.primary }}>€{service.price}</div>
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button onClick={() => { setEditingService(service); setServiceForm({ ...service, description: service.description || '' }); setShowServiceModal(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
@@ -437,13 +462,13 @@ export default function BusinessDashboard() {
         {activeTab === 'availability' && (
           <div>
             <h2 style={{ fontSize: 18, fontFamily: 'Playfair Display, serif', marginBottom: 16 }}>Weekly Hours</h2>
-            <div style={{ background: 'white', borderRadius: 16, padding: 16, border: `1px solid ${COLORS.border}` }}>
+            <div style={{ background: COLORS.surface, borderRadius: 16, padding: 16, border: `1px solid ${COLORS.border}` }}>
               <p style={{ fontSize: 14, color: COLORS.textMuted, marginBottom: 16 }}>Set your regular working hours per day of week.</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
                   <div key={day} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: `1px solid ${COLORS.border}` }}>
-                    <span style={{ fontWeight: 600 }}>{day}</span>
-                    <span style={{ fontSize: 14, color: COLORS.textMuted }}>09:00 - 18:00</span>
+                    <span style={{ fontWeight: 600, color: COLORS.textPrimary }}>{day}</span>
+                    <span style={{ fontSize: 14, color: COLORS.primary }}>09:00 - 18:00</span>
                   </div>
                 ))}
               </div>
@@ -458,27 +483,27 @@ export default function BusinessDashboard() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {bookings.map(booking => (
                 <div key={booking.id} style={{
-                  background: 'white', borderRadius: 16, padding: 16, border: `1px solid ${COLORS.border}`
+                  background: COLORS.surface, borderRadius: 16, padding: 16, border: `1px solid ${COLORS.border}`
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                     <div>
-                      <div style={{ fontWeight: 700 }}>{booking.user.name}</div>
+                      <div style={{ fontWeight: 700, color: COLORS.textPrimary }}>{booking.user.name}</div>
                       <div style={{ fontSize: 12, color: COLORS.textMuted }}>{booking.service.name} • {booking.slot.date} {booking.slot.startTime}</div>
                     </div>
                     <span style={{
                       padding: '4px 12px', borderRadius: 10, fontSize: 12, fontWeight: 600,
-                      background: booking.status === 'confirmed' ? '#D1FAE5' : booking.status === 'completed' ? '#DBEAFE' : '#FEE2E2',
-                      color: booking.status === 'confirmed' ? COLORS.success : booking.status === 'completed' ? '#1D4ED8' : COLORS.error
+                      background: booking.status === 'confirmed' ? '#00e67633' : booking.status === 'completed' ? '#00d4ff33' : '#ff6b9d33',
+                      color: booking.status === 'confirmed' ? '#00e676' : booking.status === 'completed' ? '#00d4ff' : COLORS.accent
                     }}>
                       {booking.status}
                     </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: 18, fontWeight: 800 }}>${booking.totalPrice}</div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: COLORS.primary }}>€{booking.totalPrice}</div>
                     {booking.status === 'confirmed' && (
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <button onClick={() => handleBookingAction(booking.id, 'completed')} style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: COLORS.primary, fontWeight: 700, cursor: 'pointer' }}>Complete</button>
-                        <button onClick={() => handleBookingAction(booking.id, 'cancelled')} style={{ padding: '8px 12px', borderRadius: 10, border: `1px solid ${COLORS.border}`, background: 'white', color: COLORS.error, fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
+                        <button onClick={() => handleBookingAction(booking.id, 'completed')} style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: COLORS.primary, color: COLORS.secondary, fontWeight: 700, cursor: 'pointer' }}>Complete</button>
+                        <button onClick={() => handleBookingAction(booking.id, 'cancelled')} style={{ padding: '8px 12px', borderRadius: 10, border: `1px solid ${COLORS.border}`, background: COLORS.surfaceLight, color: COLORS.accent, fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
                       </div>
                     )}
                   </div>
@@ -515,21 +540,21 @@ export default function BusinessDashboard() {
           <div>
             <h2 style={{ fontSize: 18, fontFamily: 'Playfair Display, serif', marginBottom: 16 }}>Analytics</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 24 }}>
-              <div style={{ background: 'white', borderRadius: 16, padding: 16, textAlign: 'center' }}>
-                <div style={{ fontSize: 24, fontWeight: 800 }}>{bookings.length}</div>
-                <div style={{ fontSize: 12, color: COLORS.textMuted }}>Total Bookings</div>
+              <div style={{ background: COLORS.primary, borderRadius: 16, padding: 16, textAlign: 'center' }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: COLORS.secondary }}>{bookings.length}</div>
+                <div style={{ fontSize: 12, color: COLORS.secondary, opacity: 0.7 }}>Total Bookings</div>
               </div>
-              <div style={{ background: 'white', borderRadius: 16, padding: 16, textAlign: 'center' }}>
-                <div style={{ fontSize: 24, fontWeight: 800 }}>${bookings.reduce((s, b) => s + b.totalPrice, 0)}</div>
-                <div style={{ fontSize: 12, color: COLORS.textMuted }}>Total Revenue</div>
+              <div style={{ background: COLORS.primary, borderRadius: 16, padding: 16, textAlign: 'center' }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: COLORS.secondary }}>€{bookings.reduce((s, b) => s + b.totalPrice, 0)}</div>
+                <div style={{ fontSize: 12, color: COLORS.secondary, opacity: 0.7 }}>Total Revenue</div>
               </div>
             </div>
-            <div style={{ background: 'white', borderRadius: 16, padding: 16 }}>
-              <h3 style={{ fontSize: 14, marginBottom: 12 }}>Popular Services</h3>
+            <div style={{ background: COLORS.surface, borderRadius: 16, padding: 16, border: `1px solid ${COLORS.border}` }}>
+              <h3 style={{ fontSize: 14, marginBottom: 12, color: COLORS.textPrimary }}>Popular Services</h3>
               {services.slice(0, 3).map((s, i) => (
                 <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: `1px solid ${COLORS.border}` }}>
-                  <span>{s.name}</span>
-                  <span style={{ fontWeight: 600 }}>{i + 1}</span>
+                  <span style={{ color: COLORS.textSecondary }}>{s.name}</span>
+                  <span style={{ fontWeight: 600, color: COLORS.primary }}>{i + 1}</span>
                 </div>
               ))}
             </div>
@@ -540,22 +565,22 @@ export default function BusinessDashboard() {
         {activeTab === 'profile' && (
           <div>
             <h2 style={{ fontSize: 18, fontFamily: 'Playfair Display, serif', marginBottom: 16 }}>Business Profile</h2>
-            <div style={{ background: 'white', borderRadius: 16, padding: 16, border: `1px solid ${COLORS.border}` }}>
+            <div style={{ background: COLORS.surface, borderRadius: 16, padding: 16, border: `1px solid ${COLORS.border}` }}>
               <div style={{ marginBottom: 16 }}>
                 <label style={{ fontSize: 12, color: COLORS.textMuted }}>Business Name</label>
-                <div style={{ fontSize: 16, fontWeight: 700 }}>{business.name}</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: COLORS.textPrimary }}>{business.name}</div>
               </div>
               <div style={{ marginBottom: 16 }}>
                 <label style={{ fontSize: 12, color: COLORS.textMuted }}>Category</label>
-                <div style={{ fontSize: 16 }}>{business.category}</div>
+                <div style={{ fontSize: 16, color: COLORS.textSecondary }}>{business.category}</div>
               </div>
               <div style={{ marginBottom: 16 }}>
                 <label style={{ fontSize: 12, color: COLORS.textMuted }}>Address</label>
-                <div style={{ fontSize: 16 }}>{business.address}</div>
+                <div style={{ fontSize: 16, color: COLORS.textSecondary }}>{business.address}</div>
               </div>
               <div>
                 <label style={{ fontSize: 12, color: COLORS.textMuted }}>Description</label>
-                <div style={{ fontSize: 14 }}>{business.description || 'No description'}</div>
+                <div style={{ fontSize: 14, color: COLORS.textSecondary }}>{business.description || 'No description'}</div>
               </div>
             </div>
           </div>
@@ -622,7 +647,7 @@ export default function BusinessDashboard() {
                 </div>
                 <button onClick={handleSaveService} style={{
                   width: '100%', padding: 16, borderRadius: 14, border: 'none', background: COLORS.primary,
-                  color: COLORS.textPrimary, fontSize: 16, fontWeight: 700, cursor: 'pointer'
+                  color: COLORS.secondary, fontSize: 16, fontWeight: 700, cursor: 'pointer'
                 }}>
                   <Save size={18} style={{ marginRight: 8, verticalAlign: 'middle' }} />
                   Save Service
@@ -655,6 +680,7 @@ export default function BusinessDashboard() {
                   <div key={time} onClick={() => setSelectedSlotTime(time)} style={{
                     padding: '14px 22px', borderRadius: 14, cursor: 'pointer',
                     background: selectedSlotTime === time ? COLORS.primary : 'white',
+                    color: selectedSlotTime === time ? COLORS.secondary : COLORS.textPrimary,
                     border: `2px solid ${selectedSlotTime === time ? COLORS.primary : COLORS.border}`, fontWeight: 700
                   }}>
                     {time}
@@ -664,7 +690,7 @@ export default function BusinessDashboard() {
 
               <button onClick={handleAddSlot} disabled={!selectedSlotTime} style={{
                 width: '100%', marginTop: 20, padding: 16, borderRadius: 14, border: 'none', background: COLORS.primary,
-                color: COLORS.textPrimary, fontSize: 16, fontWeight: 700, cursor: selectedSlotTime ? 'pointer' : 'not-allowed', opacity: selectedSlotTime ? 1 : 0.5
+                color: COLORS.secondary, fontSize: 16, fontWeight: 700, cursor: selectedSlotTime ? 'pointer' : 'not-allowed', opacity: selectedSlotTime ? 1 : 0.5
               }}>
                 Add Slot
               </button>
@@ -672,6 +698,8 @@ export default function BusinessDashboard() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <BusinessBottomNav active="dashboard" />
     </div>
   );
 }

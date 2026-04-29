@@ -48,7 +48,8 @@ export async function createBusiness(userId: string, data: any) {
 
 export async function getBusinessByUserId(userId: string) {
   const res = await fetch(`/api/data/businesses?userId=${userId}`);
-  return res.json();
+  const data = await res.json();
+  return Array.isArray(data) && data.length > 0 ? data[0] : null;
 }
 
 export async function getAllBusinesses() {
@@ -80,7 +81,9 @@ export async function rejectBusiness(businessId: string) {
 }
 
 export async function getServicesByBusinessId(businessId: string) {
+  if (!businessId) return [];
   const res = await fetch(`/api/data/services?businessId=${businessId}`);
+  if (!res.ok) return [];
   return res.json();
 }
 
@@ -110,8 +113,10 @@ export async function deleteService(serviceId: string) {
 }
 
 export async function getTimeSlotsByBusinessId(businessId: string, date?: string) {
+  if (!businessId) return [];
   const url = `/api/data/timeSlots?businessId=${businessId}${date ? `&date=${date}` : ''}`;
   const res = await fetch(url);
+  if (!res.ok) return [];
   return res.json();
 }
 
@@ -143,7 +148,9 @@ export async function createBooking(userId: string, businessId: string, serviceI
 }
 
 export async function getBookingsByBusinessId(businessId: string) {
+  if (!businessId) return [];
   const res = await fetch(`/api/data/bookings?businessId=${businessId}`);
+  if (!res.ok) return [];
   return res.json();
 }
 

@@ -4,9 +4,11 @@ import prisma from '@/lib/db';
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status');
+  const userId = searchParams.get('userId');
 
   const where: any = {};
   if (status && status !== 'all') where.status = status;
+  if (userId) where.userId = userId;
 
   const businesses = await prisma.business.findMany({
     where, 

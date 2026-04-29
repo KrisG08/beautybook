@@ -45,6 +45,22 @@ export default function ClientSearch() {
   const [serviceType, setServiceType] = useState<string | null>(null);
   const [date, setDate] = useState<string | null>(null);
   const [time, setTime] = useState<string | null>(null);
+  const [favorites, setFavorites] = useState<string[]>([]);
+
+  useEffect(() => {
+    const storedFavs = localStorage.getItem('favorites');
+    if (storedFavs) {
+      setFavorites(JSON.parse(storedFavs));
+    }
+  }, []);
+
+  const toggleFavorite = (businessId: string) => {
+    const newFavs = favorites.includes(businessId)
+      ? favorites.filter(id => id !== businessId)
+      : [...favorites, businessId];
+    setFavorites(newFavs);
+    localStorage.setItem('favorites', JSON.stringify(newFavs));
+  };
 
   useEffect(() => {
     const category = searchParams.get('category');
@@ -268,6 +284,8 @@ export default function ClientSearch() {
               <BusinessCard
                 business={business}
                 onClick={() => router.push(`/client/location/${business.id}`)}
+                isFavorite={favorites.includes(business.id)}
+                onFavoriteClick={() => toggleFavorite(business.id)}
               />
             </motion.div>
           ))}

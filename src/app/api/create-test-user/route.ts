@@ -36,6 +36,36 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    // Create approved business for test business user
+    const business = await prisma.business.create({
+      data: {
+        name: 'Glamour Studio Plovdiv',
+        contactPerson: 'Maria Ivanova',
+        email: 'business@lastminute.bg',
+        phone: '+359885000002',
+        address: 'ul. "Knyaz Alexander I" 12, Plovdiv',
+        description: 'Premium hair and beauty salon in the heart of Plovdiv. Expert stylists, modern techniques, and luxury products.',
+        category: 'hair',
+        status: 'approved',
+        rating: 4.8,
+        reviewCount: 124,
+        commission: 10,
+        userId: businessUser.id,
+      }
+    });
+
+    // Add some services
+    const services = [
+      { name: 'Haircut & Styling', category: 'hair', subtype: 'cut', price: 45, duration: 60 },
+      { name: 'Hair Coloring', category: 'hair', subtype: 'color', price: 80, duration: 120 },
+      { name: 'Balayage', category: 'hair', subtype: 'color', price: 120, duration: 180 },
+      { name: 'Blow Dry', category: 'hair', subtype: 'styling', price: 25, duration: 30 },
+      { name: 'Keratin Treatment', category: 'hair', subtype: 'treatment', price: 150, duration: 150 },
+    ];
+    for (const svc of services) {
+      await prisma.service.create({ data: { ...svc, businessId: business.id } });
+    }
+
     // Create test client user
     const clientUser = await prisma.user.create({
       data: {

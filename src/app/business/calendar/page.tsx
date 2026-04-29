@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Clock, Calendar as CalendarIcon, Save, Check } from 'lucide-react';
 import { useAuth } from '@/lib/authContext';
 import { getBusinessByUserId } from '@/lib/actions';
+import { BusinessBottomNav } from '@/components/UI';
 
 const colors = {
   primary: '#fdfcd2',
@@ -46,6 +47,20 @@ export default function BusinessCalendar() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    const stored = localStorage.getItem('user');
+    if (!stored) {
+      router.push('/auth');
+      return;
+    }
+    const userData = JSON.parse(stored);
+    if (userData.role !== 'business') {
+      router.push(userData.role === 'admin' ? '/admin' : '/client');
+      return;
+    }
+  }, [mounted]);
 
   const toggleDay = (day: string) => {
     setSchedule(prev => ({
@@ -220,6 +235,7 @@ export default function BusinessCalendar() {
           </ul>
         </div>
       </motion.div>
+      <BusinessBottomNav active="calendar" />
     </div>
   );
 }

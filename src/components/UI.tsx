@@ -53,6 +53,26 @@ export function ClientBottomNav({ active }: { active: string }) {
   );
 }
 
+export function BusinessBottomNav({ active }: { active: string }) {
+  const router = useRouter();
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/business/dashboard' },
+    { id: 'calendar', label: 'Hours', icon: Calendar, path: '/business/calendar' },
+    { id: 'earnings', label: 'Earnings', icon: CircleDollarSign, path: '/business/earnings' },
+    { id: 'account', label: 'Profile', icon: UserCircle, path: '/business' },
+  ];
+  return (
+    <div className="bottom-nav">
+      {navItems.map((item) => (
+        <div key={item.id} className={`nav-item ${active === item.id ? 'active' : ''}`} onClick={() => router.push(item.path)}>
+          <item.icon size={22} strokeWidth={2} />
+          <span style={{ fontSize: 11, fontWeight: 600 }}>{item.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function CategoryCard({ category, onClick }: { category: { id: string; name: string; icon: string; color: string }; onClick: () => void }) {
   const Icon = iconMap[category.icon] || iconMap.Hair;
   return (

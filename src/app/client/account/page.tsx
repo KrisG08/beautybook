@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { User, Phone, Mail, LogOut, Settings, HelpCircle, ChevronRight, Store, Scissors, Calendar, Star } from 'lucide-react';
+import { User, Phone, Mail, LogOut, Settings, HelpCircle, ChevronRight, Store, Scissors, Calendar, Star, CreditCard } from 'lucide-react';
 import { ClientBottomNav, Button } from '@/components/UI';
 import { useStore } from '@/lib/store';
 
@@ -208,6 +208,20 @@ export default function ClientAccount() {
 
             {/* Action Buttons */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 20 }}>
+              <Button
+                onClick={() => router.push('/client/calendar')}
+                style={{ width: '100%' }}
+              >
+                <Calendar size={20} />
+                My Appointments
+              </Button>
+              <Button
+                onClick={() => router.push('/client/payments')}
+                style={{ width: '100%' }}
+              >
+                <CreditCard size={20} />
+                My Payments
+              </Button>
               <Button
                 onClick={() => router.push('/client/settings')}
                 style={{ width: '100%' }}

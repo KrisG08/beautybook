@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, DollarSign, TrendingUp, Calendar, CreditCard, CheckCircle, Clock } from 'lucide-react';
 import { useAuth } from '@/lib/authContext';
 import { getBusinessByUserId } from '@/lib/actions';
+import { BusinessBottomNav } from '@/components/UI';
 
 const colors = {
   primary: '#fdfcd2',
@@ -50,6 +51,20 @@ export default function BusinessEarnings() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    const stored = localStorage.getItem('user');
+    if (!stored) {
+      router.push('/auth');
+      return;
+    }
+    const userData = JSON.parse(stored);
+    if (userData.role !== 'business') {
+      router.push(userData.role === 'admin' ? '/admin' : '/client');
+      return;
+    }
+  }, [mounted]);
 
   const totalEarnings = mockTransactions.reduce((sum, t) => sum + t.amount, 0);
   const thisWeek = mockTransactions.filter(t => {
@@ -226,6 +241,7 @@ export default function BusinessEarnings() {
           </div>
         </div>
       </motion.div>
+      <BusinessBottomNav active="earnings" />
     </div>
   );
 }

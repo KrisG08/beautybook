@@ -77,25 +77,25 @@ export default function LocationPage() {
     async function fetchBusinessData() {
       try {
         // Fetch business data
-        const businessRes = await fetch(`/api/data/businesses?businessId=${params.id}`);
-        const businessData = await businessRes.json();
+        const businessRes = await fetch(`/api/data/businesses?id=${params.id}`);
+        const businessData = businessRes.ok ? await businessRes.json() : null;
         
         // Fetch services for this business
         const servicesRes = await fetch(`/api/data/services?businessId=${params.id}`);
-        const servicesData = await servicesRes.json();
+        const servicesData = servicesRes.ok ? await servicesRes.json() : [];
         
         // Fetch time slots for this business
         const timeSlotsRes = await fetch(`/api/data/timeSlots?businessId=${params.id}`);
-        const timeSlotsData = await timeSlotsRes.json();
+        const timeSlotsData = timeSlotsRes.ok ? await timeSlotsRes.json() : [];
         
         // Fetch reviews for this business
         const reviewsRes = await fetch(`/api/reviews?businessId=${params.id}`);
-        const reviewsData = await reviewsRes.json();
+        const reviewsData = reviewsRes.ok ? await reviewsRes.json() : [];
         
         setBusiness(Array.isArray(businessData) ? businessData[0] : businessData);
-        setBusinessServices(servicesData);
-        setAvailableSlots(timeSlotsData);
-        setBusinessReviews(reviewsData);
+        setBusinessServices(servicesData || []);
+        setAvailableSlots(timeSlotsData || []);
+        setBusinessReviews(reviewsData || []);
       } catch (error) {
         console.error('Failed to fetch business data:', error);
       } finally {

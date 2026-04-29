@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { 
   Home, Calendar, Scissors, Clock, Users, Bell, BarChart2, Store, Settings, Plus, Minus, ChevronLeft, ChevronRight,
-  DollarSign, User, X, Check, Edit2, Trash2, ToggleLeft, ToggleRight, Save, LogOut
+  DollarSign, User, X, Check, Edit2, Trash2, ToggleLeft, ToggleRight, Save, LogOut, Star
 } from 'lucide-react';
 import { 
   getBusinessByUserId, getServicesByBusinessId, createService, updateService, deleteService,
@@ -92,6 +92,7 @@ export default function BusinessDashboard() {
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
@@ -150,6 +151,9 @@ export default function BusinessDashboard() {
         const notifs = await notifRes.json();
         setNotifications(notifs || []);
         setUnreadCount((notifs || []).filter((n: Notification) => !n.read).length);
+        
+        const revs = await getReviewsByBusinessId(biz.id);
+        setReviews(revs || []);
       }
     } catch (err) {
       console.error('Error loading data:', err);
@@ -253,6 +257,7 @@ export default function BusinessDashboard() {
     { id: 'availability', label: 'Hours', icon: Clock },
     { id: 'bookings', label: 'Bookings', icon: Users },
     { id: 'alerts', label: 'Alerts', icon: Bell },
+    { id: 'reviews', label: 'Reviews', icon: Star },
     { id: 'analytics', label: 'Stats', icon: BarChart2 },
     { id: 'profile', label: 'Profile', icon: Store },
     { id: 'settings', label: 'Settings', icon: Settings },
@@ -553,6 +558,46 @@ export default function BusinessDashboard() {
               </div>
             ) : (
               <p style={{ color: COLORS.textMuted }}>No notifications yet</p>
+            )}
+          </div>
+        )}
+
+        {/* REVIEWS */}
+        {activeTab === 'reviews' && (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 18, fontFamily: 'Playfair Display, serif', margin: 0 }}>Reviews</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Star size={20} fill={COLORS.primary} stroke={COLORS.primary} />
+                <span style={{ fontSize: 18, fontWeight: 700, color: COLORS.primary }}>{business?.rating?.toFixed(1) || '0.0'}</span>
+                <span style={{ fontSize: 14, color: COLORS.textMuted }}>({reviews.length})</span>
+              </div>
+            </div>
+            {reviews.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {reviews.map((review: any) => (
+                  <div key={review.id} style={{
+                    background: COLORS.surface, borderRadius: 16, padding: 16, border: `1px solid ${COLORS.border}`
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                      <div style={{ display: 'flex', gap: 2 }}>
+                        {[1,2,3,4,5].map((star) => (
+                          <Star key={star} size={14} fill={star <= review.rating ? COLORS.primary : 'none'} stroke={star <= review.rating ? COLORS.primary : COLORS.textMuted} />
+                        ))}
+                      </div>
+                      <span style={{ fontSize: 14, color: COLORS.textMuted }}>{review.user?.name || 'Client'}</span>
+                    </div>
+                    {review.comment && (
+                      <p style={{ fontSize: 14, color: COLORS.textSecondary, margin: 0 }}>{review.comment}</p>
+                    )}
+                    <div style={{ fontSize: 12, color: COLORS.textMuted, marginTop: 8 }}>
+                      {format(new Date(review.createdAt), 'MMM d, yyyy')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ color: COLORS.textMuted }}>No reviews yet</p>
             )}
           </div>
         )}

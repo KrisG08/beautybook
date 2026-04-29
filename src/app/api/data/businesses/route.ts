@@ -5,10 +5,12 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status');
   const userId = searchParams.get('userId');
+  const businessId = searchParams.get('businessId');
 
   const where: any = {};
   if (status && status !== 'all') where.status = status;
   if (userId) where.userId = userId;
+  if (businessId) where.id = businessId;
 
   const businesses = await prisma.business.findMany({
     where, 

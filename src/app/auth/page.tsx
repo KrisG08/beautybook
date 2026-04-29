@@ -155,15 +155,13 @@ export default function AuthPage() {
       if (result.user) {
         const dbRole = result.user.role;
         
-        // If selecting business/admin, must match database role
-        if ((role === 'business' && dbRole !== 'business') || 
-            (role === 'admin' && dbRole !== 'admin')) {
-          setError(`This account is not registered as ${role}. Please select the correct role.`);
+        // Selected role must match database role
+        if (role !== dbRole) {
+          setError(`This account is registered as ${dbRole}, not ${role}. Please select the correct role.`);
           setLoading(false);
           return;
         }
         
-        // Use database role for navigation
         const userWithRole = {
           id: result.user.id,
           name: result.user.name,

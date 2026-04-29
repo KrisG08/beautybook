@@ -57,6 +57,10 @@ export default function LocationPage() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewText, setReviewText] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
   const [hydratedUser, setHydratedUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -136,6 +140,39 @@ export default function LocationPage() {
 
     createBooking(activeUser.id, business!.id, selectedService.id, selectedTimeSlot.id, selectedDate, selectedTimeSlot.startTime, selectedService.price, selectedService.name);
     setShowSuccessModal(true);
+  };
+
+  const handleSubmitReview = async () => {
+    if (!activeUser) {
+      setShowReviewModal(false);
+      setShowAuthModal(true);
+      return;
+    }
+    
+    setSubmittingReview(true);
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: activeUser.id,
+          businessId: business!.id,
+          rating: reviewRating,
+          comment: reviewText
+        })
+      });
+      
+      if (res.ok) {
+        const newReview = await res.json();
+        setBusinessReviews([newReview, ...businessReviews]);
+        setShowReviewModal(false);
+        setReviewText('');
+        setReviewRating(5);
+      }
+    } catch (err) {
+      console.error('Failed to submit review:', err);
+    }
+    setSubmittingReview(false);
   };
 
   const handleSuccessClose = () => {
@@ -391,11 +428,28 @@ export default function LocationPage() {
 
           {businessReviews.length > 0 && (
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <Star size={18} stroke={colors.primary} />
-                <h3 style={{ fontSize: 18, margin: 0, color: colors.textPrimary }}>
-                  Reviews
-                </h3>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Star size={18} stroke={colors.primary} />
+                  <h3 style={{ fontSize: 18, margin: 0, color: colors.textPrimary }}>
+                    Reviews
+                  </h3>
+                </div>
+                <button 
+                  onClick={() => setShowReviewModal(true)}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: 12,
+                    background: colors.primary,
+                    border: 'none',
+                    color: colors.secondary,
+                    fontWeight: 600,
+                    fontSize: 13,
+                    cursor: 'pointer'
+                  }}
+                >
+                  + Review
+                </button>
               </div>
               {businessReviews.map((review) => (
                 <ReviewCard key={review.id} review={review} />
@@ -580,6 +634,115 @@ export default function LocationPage() {
             >
               View My Bookings
             </button>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {showReviewModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(10, 10, 26, 0.9)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 200,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+          }}
+        >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            style={{
+              background: colors.surface,
+              borderRadius: 24,
+              padding: 32,
+              maxWidth: 340,
+              width: '100%',
+              textAlign: 'center',
+            }}
+          >
+            <h2 style={{ fontSize: 22, fontWeight: 800, color: colors.textPrimary, marginBottom: 20, fontFamily: 'Playfair Display, serif' }}>
+              Write a Review
+            </h2>
+            
+            <div style={{ marginBottom: 20 }}>
+              <p style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 8 }}>Your Rating</p>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setReviewRating(star)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
+                  >
+                    <Star 
+                      size={32} 
+                      fill={star <= reviewRating ? colors.primary : 'none'}
+                      stroke={star <= reviewRating ? colors.primary : colors.textMuted}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <textarea
+              value={reviewText}
+              onChange={(e) => setReviewText(e.target.value)}
+              placeholder="Share your experience..."
+              style={{
+                width: '100%',
+                height: 100,
+                padding: 14,
+                borderRadius: 14,
+                border: `2px solid ${colors.border}`,
+                background: colors.surfaceLight,
+                color: colors.textPrimary,
+                fontSize: 14,
+                resize: 'none',
+                marginBottom: 20,
+              }}
+            />
+            
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                onClick={() => setShowReviewModal(false)}
+                style={{
+                  flex: 1,
+                  padding: '14px 20px',
+                  borderRadius: 16,
+                  border: `2px solid ${colors.border}`,
+                  background: 'transparent',
+                  color: colors.textSecondary,
+                  fontWeight: 700,
+                  fontSize: 14,
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitReview}
+                disabled={submittingReview}
+                style={{
+                  flex: 1,
+                  padding: '14px 20px',
+                  borderRadius: 16,
+                  border: 'none',
+                  background: colors.primary,
+                  color: colors.secondary,
+                  fontWeight: 700,
+                  fontSize: 14,
+                  cursor: submittingReview ? 'not-allowed' : 'pointer',
+                  opacity: submittingReview ? 0.6 : 1,
+                }}
+              >
+                {submittingReview ? 'Posting...' : 'Post Review'}
+              </button>
+            </div>
           </motion.div>
         </motion.div>
       )}

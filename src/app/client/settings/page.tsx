@@ -31,7 +31,7 @@ interface User {
 
 export default function ClientSettings() {
   const router = useRouter();
-  const { currentUser, updateUser } = useStore();
+  const { currentUser } = useStore();
   const [hydratedUser, setHydratedUser] = useState<User | null>(null);
   
   const [formData, setFormData] = useState({
@@ -64,9 +64,9 @@ export default function ClientSettings() {
 
   const handleSave = () => {
     if (activeUser) {
-      updateUser({ ...activeUser, ...formData });
       localStorage.setItem('user', JSON.stringify({ ...activeUser, ...formData }));
       alert('Settings saved successfully!');
+      router.push('/client');
     }
   };
 

@@ -35,7 +35,7 @@ const COLORS = {
 
 const TIME_SLOTS = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
 
-type Tab = 'home' | 'calendar' | 'services' | 'availability' | 'bookings' | 'alerts' | 'analytics' | 'profile' | 'settings';
+type Tab = 'home' | 'calendar' | 'services' | 'availability' | 'bookings' | 'alerts' | 'reviews' | 'analytics' | 'profile' | 'settings';
 
 interface Business {
   id: string;
@@ -45,6 +45,7 @@ interface Business {
   category: string;
   imageUrl: string;
   status: string;
+  rating: number;
 }
 
 interface Service {

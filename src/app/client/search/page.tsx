@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
@@ -36,6 +36,14 @@ interface Business {
 }
 
 export default function ClientSearch() {
+  return (
+    <Suspense fallback={<div style={{ padding: 40, textAlign: 'center' }}>Loading...</div>}>
+      <ClientSearchContent />
+    </Suspense>
+  );
+}
+
+function ClientSearchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [businesses, setBusinesses] = useState<Business[]>([]);

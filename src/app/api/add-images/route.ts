@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 
-const categoryImages: Record<string, string> = {
+const categoryImages: Record<string, string[]> = {
   hair: [
     'https://images.unsplash.com/photo-1560066984-138deb2ed1e3?w=400&h=250&fit=crop',
     'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&h=250&fit=crop',

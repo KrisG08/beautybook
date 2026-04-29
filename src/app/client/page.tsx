@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { Search, TrendingUp, Heart } from 'lucide-react';
+import { Search, Heart } from 'lucide-react';
 import { ClientBottomNav, CategoryCard, BusinessCard } from '@/components/UI';
 
 const colors = {
@@ -94,8 +94,6 @@ export default function ClientHome() {
   }, [mounted]);
 
   if (!mounted || loading) return null;
-
-  const approvedBusinesses = businesses.filter(b => b.status === 'approved').slice(0, 6);
 
   return (
     <div style={{ background: colors.background, minHeight: '100vh', paddingBottom: 100 }}>
@@ -225,36 +223,6 @@ export default function ClientHome() {
             ))}
           </div>
         )}
-
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}
-        >
-          <h2 style={{ fontSize: 18, fontFamily: 'Playfair Display, serif', fontWeight: 800 }}>
-            <span style={{ color: colors.accent }}>🔥</span> Popular now
-          </h2>
-          <TrendingUp size={18} stroke={colors.accent} />
-        </motion.div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {approvedBusinesses.map((business, index) => (
-            <motion.div
-              key={business.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.65 + index * 0.1 }}
-            >
-              <BusinessCard
-                business={business}
-                onClick={() => router.push(`/client/location/${business.id}`)}
-                isFavorite={favorites.includes(business.id)}
-                onFavoriteClick={() => toggleFavorite(business.id)}
-              />
-            </motion.div>
-          ))}
-        </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}

@@ -426,8 +426,7 @@ export default function LocationPage() {
             </div>
           </div>
 
-          {businessReviews.length > 0 && (
-            <div>
+          <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Star size={18} stroke={colors.primary} />
@@ -451,11 +450,16 @@ export default function LocationPage() {
                   + Review
                 </button>
               </div>
-              {businessReviews.map((review) => (
-                <ReviewCard key={review.id} review={review} />
-              ))}
+              {businessReviews.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {businessReviews.map((review) => (
+                    <ReviewCard key={review.id} review={review} />
+                  ))}
+                </div>
+              ) : (
+                <p style={{ color: colors.textMuted, fontSize: 14 }}>No reviews yet. Be the first to review!</p>
+              )}
             </div>
-          )}
         </div>
       </motion.div>
 

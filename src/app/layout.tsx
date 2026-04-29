@@ -23,29 +23,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body style={{ background: '#0a0a1a', margin: 0, padding: 0, overflowX: 'hidden' }} suppressHydrationWarning>
-        <div style={{
-          width: '100vw',
-          height: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <div style={{
-            width: '100%',
-            maxWidth: '177.78vh',
-            height: '100%',
-            maxHeight: '56.25vw',
-            aspectRatio: '16 / 9',
-            position: 'relative',
-            overflow: 'hidden',
-          }}>
-            <AuthProvider>
-              {children}
-              <AIChat />
-            </AuthProvider>
-          </div>
-        </div>
+      <body style={{ background: '#0a0a1a', minHeight: '100vh', margin: 0, padding: 0, overflowX: 'hidden' }} suppressHydrationWarning>
+        <AuthProvider>
+          {children}
+          <AIChat />
+        </AuthProvider>
       </body>
     </html>
   );

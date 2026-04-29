@@ -9,17 +9,17 @@ export async function GET(request: NextRequest) {
 
   if (userId) {
     const business = await prisma.business.findUnique({ where: { userId }, include: { user: true } });
-    return NextResponse.json(business);
+    return NextResponse.json(business || []);
   }
 
-  if (businessId) {
-    const where: any = { businessId };
-    if (date) where.date = date;
-    const slots = await prisma.timeSlot.findMany({ where, orderBy: [{ date: 'asc' }, { startTime: 'asc' }] });
-    return NextResponse.json(slots);
+  if (!businessId) {
+    return NextResponse.json([]);
   }
-
-  return NextResponse.json({ error: 'Missing params' }, { status: 400 });
+  
+  const where: any = { businessId };
+  if (date) where.date = date;
+  const slots = await prisma.timeSlot.findMany({ where, orderBy: [{ date: 'asc' }, { startTime: 'asc' }] });
+  return NextResponse.json(slots);
 }
 
 export async function POST(request: NextRequest) {

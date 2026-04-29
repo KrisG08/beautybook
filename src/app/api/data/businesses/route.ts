@@ -5,34 +5,10 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status');
   const userId = searchParams.get('userId');
-  const id = searchParams.get('id');
 
   const where: any = {};
   if (status && status !== 'all') where.status = status;
   if (userId) where.userId = userId;
-  if (id) where.id = id;
-  if (id) {
-    // If searching by id, return just that business
-    const business = await prisma.business.findUnique({
-      where: { id },
-      include: {
-        services: { orderBy: { name: 'asc' } },
-        timeSlots: { where: { available: true } }
-      }
-    });
-    if (business) {
-      return NextResponse.json([{
-        ...business,
-        serviceCount: business.services.length,
-        priceRange: business.services.length > 0 ? {
-          min: Math.min(...business.services.map(s => s.price)),
-          max: Math.max(...business.services.map(s => s.price))
-        } : null,
-        todaySlots: business.timeSlots.length
-      }]);
-    }
-    return NextResponse.json([]);
-  }
 
   const businesses = await prisma.business.findMany({
     where, 

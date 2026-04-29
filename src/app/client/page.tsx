@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { Search, Heart } from 'lucide-react';
+import { Search, TrendingUp, Heart } from 'lucide-react';
 import { ClientBottomNav, CategoryCard, BusinessCard } from '@/components/UI';
 
 const colors = {
@@ -95,6 +95,8 @@ export default function ClientHome() {
 
   if (!mounted || loading) return null;
 
+  const approvedBusinesses = businesses.filter(b => b.status === 'approved').slice(0, 6);
+
   return (
     <div style={{ background: colors.background, minHeight: '100vh', paddingBottom: 100 }}>
       <div style={{
@@ -138,34 +140,57 @@ export default function ClientHome() {
             </span>
           </motion.div>
 
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            style={{ 
+              fontSize: 28, 
+              fontFamily: 'Playfair Display, serif', 
+              marginBottom: 12, 
+              fontWeight: 900, 
+              lineHeight: 1.2,
+              color: '#140755',
+            }}
           >
-            <div style={{ position: 'relative' }}>
-              <Search size={18} stroke={colors.textMuted} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)' }} />
-              <input
-                onClick={() => router.push('/client/search')}
-                readOnly
-                placeholder="Search services or businesses..."
-                style={{
-                  width: '100%',
-                  padding: '14px 14px 14px 46px',
-                  borderRadius: 16,
-                  border: 'none',
-                  background: 'rgba(20, 7, 85, 0.08)',
-                  fontSize: 14,
-                  color: colors.textMuted,
-                  cursor: 'pointer',
-                }}
-              />
-            </div>
+            Find your <br />
+            <span style={{
+              background: 'linear-gradient(135deg, #140755 0%, #2a1a8a 50%, #3d2ab8 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}>perfect service</span>
+          </motion.h1>
+          
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="search-bar" 
+            onClick={() => router.push('/client/search')} 
+            style={{ cursor: 'pointer', marginTop: 16 }}
+          >
+            <Search size={20} stroke={colors.textMuted} />
+            <span style={{ color: colors.primary, fontSize: 14 }}>Search services, salons...</span>
           </motion.div>
         </div>
       </div>
 
-      <div style={{ padding: '0 20px', maxWidth: 430, margin: '0 auto' }}>
+      <div style={{ padding: '20px 20px', maxWidth: 430, margin: '0 auto' }}>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 20 }}
+        >
+          <div className="filter-chip active" onClick={() => router.push('/client/search')}>Available Now</div>
+          {CATEGORIES.map((cat) => (
+            <div key={cat.id} className="filter-chip" onClick={() => router.push(`/client/search?category=${cat.id}`)}>
+              {cat.name}
+            </div>
+          ))}
+        </motion.div>
+
         <motion.h2 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

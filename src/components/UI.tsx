@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import { 
   User, Store, Shield, Home, Search, Calendar, UserCircle, ArrowLeft,
   Star, Clock, MapPin, ChevronRight, Scissors, Hand, Sparkles, Heart, 
-  Palette, CircleDollarSign, Droplets, Gem, SprayCan, Accessibility, Eye
+  Palette, CircleDollarSign, Droplets, Gem, SprayCan, Accessibility, Eye,
+  TrendingUp, Bell, BarChart2, Settings, Plus, Trash2, Edit2, Save, X, Check,
+  LogOut, ChevronLeft, Users, DollarSign
 } from 'lucide-react';
 
 const colors = {

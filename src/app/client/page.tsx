@@ -158,7 +158,7 @@ export default function ClientHome() {
             style={{ cursor: 'pointer', marginTop: 16 }}
           >
             <Search size={20} stroke={colors.textMuted} />
-            <span style={{ color: colors.textMuted, fontSize: 14 }}>Search services, salons...</span>
+            <span style={{ color: colors.primary, fontSize: 14 }}>Search services, salons...</span>
           </motion.div>
         </div>
       </div>

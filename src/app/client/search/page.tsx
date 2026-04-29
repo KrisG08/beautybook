@@ -95,7 +95,7 @@ export default function ClientSearch() {
       >
         <div style={{ padding: '16px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ flex: 1, position: 'relative' }}>
-            <Search size={20} stroke={colors.textMuted} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
+            <Search size={20} stroke={colors.primary} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
             <input
               type="text"
               placeholder="Search services..."
@@ -108,7 +108,7 @@ export default function ClientSearch() {
                 borderRadius: 12,
                 fontSize: 14,
                 background: colors.surface,
-                color: colors.textPrimary,
+                color: colors.primary,
               }}
             />
           </div>

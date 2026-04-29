@@ -3,11 +3,19 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Star, MapPin, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Star, MapPin, Clock, ChevronLeft, ChevronRight, Calendar, Scissors } from 'lucide-react';
 import { ClientBottomNav, Button, TimeSlotButton, ReviewCard } from '@/components/UI';
 import { useStore } from '@/lib/store';
 import { Business, TimeSlot, Review, Service } from '@/lib/types';
 import { format, addDays } from 'date-fns';
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  phone?: string;
+}
 
 const colors = {
   primary: '#fdfcd2',
@@ -21,6 +29,16 @@ const colors = {
   textSecondary: '#b8b8d0',
   textMuted: '#6a6a8a',
   border: '#2a2a4a',
+};
+
+const BUSINESS_HOURS = {
+  Monday: '09:00 - 20:00',
+  Tuesday: '09:00 - 20:00',
+  Wednesday: '09:00 - 20:00',
+  Thursday: '09:00 - 20:00',
+  Friday: '09:00 - 20:00',
+  Saturday: '09:00 - 20:00',
+  Sunday: 'Closed',
 };
 
 export default function LocationPage() {
@@ -38,6 +56,22 @@ export default function LocationPage() {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [hydratedUser, setHydratedUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('user');
+    if (stored) {
+      try {
+        const user = JSON.parse(stored);
+        if (user.role === 'client') {
+          setHydratedUser(user);
+        }
+      } catch {}
+    }
+  }, []);
+
+  const activeUser = currentUser || hydratedUser;
 
   useEffect(() => {
     async function fetchBusinessData() {
@@ -79,7 +113,7 @@ export default function LocationPage() {
   const dates = Array.from({ length: 7 }, (_, i) => addDays(new Date(), i));
 
   const handleBook = () => {
-    if (!currentUser) {
+    if (!activeUser) {
       setShowAuthModal(true);
       return;
     }
@@ -88,7 +122,23 @@ export default function LocationPage() {
       return;
     }
 
-    createBooking(currentUser.id, business!.id, selectedService.id, selectedTimeSlot.id);
+    console.log('Creating booking with:', {
+      userId: activeUser.id,
+      businessId: business!.id,
+      serviceId: selectedService.id,
+      slotId: selectedTimeSlot.id,
+      selectedDate,
+      selectedTime: selectedTimeSlot.startTime,
+      price: selectedService.price,
+      serviceName: selectedService.name
+    });
+
+    createBooking(activeUser.id, business!.id, selectedService.id, selectedTimeSlot.id, selectedDate, selectedTimeSlot.startTime, selectedService.price, selectedService.name);
+    setShowSuccessModal(true);
+  };
+
+  const handleSuccessClose = () => {
+    setShowSuccessModal(false);
     router.push('/client/calendar');
   };
 
@@ -109,7 +159,7 @@ export default function LocationPage() {
   }
 
   return (
-    <div className="container" style={{ paddingBottom: 100 }}>
+    <div className="container" style={{ paddingBottom: 100, background: colors.background, minHeight: '100vh' }}>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -154,74 +204,120 @@ export default function LocationPage() {
 
         <div style={{ padding: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-            <div>
-              <h1 style={{ fontSize: 24, marginBottom: 8, color: colors.textPrimary }}>
+            <div style={{ flex: 1 }}>
+              <h1 style={{ fontSize: 26, marginBottom: 10, color: colors.textPrimary, fontFamily: 'Playfair Display, serif', fontWeight: 800 }}>
                 {business.name}
               </h1>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
-                <Star size={16} fill={colors.accent} stroke={colors.accent} />
-                <span style={{ fontWeight: 600 }}>{business.rating}</span>
-                <span style={{ fontSize: 14, color: colors.textMuted }}>({business.reviewCount} reviews)</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 4, 
+                  padding: '4px 10px',
+                  background: 'rgba(255, 107, 157, 0.15)',
+                  borderRadius: 8 
+                }}>
+                  <Star size={14} fill={colors.accent} stroke={colors.accent} />
+                  <span style={{ fontWeight: 700, color: colors.textPrimary }}>{business.rating}</span>
+                </div>
+                <span style={{ fontSize: 13, color: colors.textMuted }}>({business.reviewCount} reviews)</span>
               </div>
+              <span style={{
+                padding: '4px 10px',
+                background: colors.surface,
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 600,
+                textTransform: 'capitalize',
+                color: colors.textSecondary,
+                display: 'inline-block',
+              }}>
+                {business.category}
+              </span>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-            <MapPin size={16} stroke={colors.textMuted} />
-            <span style={{ fontSize: 14, color: colors.textSecondary }}>{business.address}</span>
+            <MapPin size={16} stroke={colors.accent} />
+            <span style={{ fontSize: 14, color: colors.textPrimary, fontWeight: 500 }}>{business.address}</span>
           </div>
 
-          <p style={{ fontSize: 14, color: colors.textSecondary, lineHeight: 1.6, marginBottom: 24 }}>
+          <p style={{ fontSize: 14, color: colors.textSecondary, lineHeight: 1.6, marginBottom: 16 }}>
             {business.description}
           </p>
 
+          <div style={{ 
+            marginBottom: 24, 
+            padding: 16, 
+            background: 'linear-gradient(135deg, rgba(20, 7, 85, 0.4) 0%, rgba(26, 26, 58, 0.6) 100%)',
+            borderRadius: 16,
+            border: '1px solid rgba(253, 252, 210, 0.1)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <Clock size={18} stroke={colors.primary} />
+              <span style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary }}>Business Hours</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              {Object.entries(BUSINESS_HOURS).map(([day, hours]) => (
+                <div key={day} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: colors.surface, borderRadius: 10, border: `1px solid ${colors.border}` }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary }}>{day}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: hours === 'Closed' ? colors.accent : '#00e676' }}>{hours}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div style={{ marginBottom: 24 }}>
-            <h3 style={{ fontSize: 18, marginBottom: 12, color: colors.textPrimary }}>
-              Select Service
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-           {businessServices.slice(0, 5).map((service) => (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <Scissors size={18} stroke={colors.primary} />
+              <h3 style={{ fontSize: 18, margin: 0, color: colors.textPrimary }}>
+                Services & Pricing
+              </h3>
+            </div>
+<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+           {businessServices.slice(0, 8).map((service) => (
                  <motion.div
                    key={service.id}
-                    onClick={() => setSelectedService(service)}
-                    whileTap={{ scale: 0.98 }}
-                    style={{
-                      padding: 12,
-                      borderRadius: 12,
-                      border: `2px solid ${selectedService && selectedService.id === service.id ? colors.primary : colors.secondary}`,
-                      background: selectedService && selectedService.id === service.id ? colors.secondary : colors.surface,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                    }}
+                   onClick={() => setSelectedService(service)}
+                   whileTap={{ scale: 0.98 }}
+                   style={{
+                     padding: 14,
+                     borderRadius: 12,
+                     border: `2px solid ${selectedService && selectedService.id === service.id ? colors.primary : colors.border}`,
+                     background: selectedService && selectedService.id === service.id 
+                       ? 'linear-gradient(135deg, rgba(253, 252, 210, 0.15) 0%, rgba(253, 252, 210, 0.05) 100%)' 
+                       : colors.surface,
+                     cursor: 'pointer',
+                     display: 'flex',
+                     justifyContent: 'space-between',
+                     alignItems: 'center',
+                   }}
                  >
                    <div>
-                     <span style={{ fontWeight: 600, color: colors.textPrimary }}>{service.name}</span>
-                     <span style={{ fontSize: 12, color: colors.textMuted, marginLeft: 8 }}>{service.subtype}</span>
+                     <span style={{ fontWeight: 700, fontSize: 15, color: colors.textPrimary }}>{service.name}</span>
+                     <span style={{ fontSize: 12, color: colors.textMuted, marginLeft: 8 }}>{service.duration} min</span>
                    </div>
                    <div style={{ textAlign: 'right' }}>
-                     <span style={{ fontWeight: 600, color: colors.primary }}>${service.price}</span>
-                     <span style={{ fontSize: 12, color: colors.textMuted, display: 'block' }}>{service.duration} min</span>
+                     <span style={{ fontWeight: 800, fontSize: 16, color: colors.primary }}>${service.price}</span>
                    </div>
                  </motion.div>
                ))}
                
                {/* Selected Service Details */}
                {selectedService && (
-                 <div style={{ marginTop: 20, padding: 16, background: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}` }}>
-                   <h3 style={{ fontSize: 18, marginBottom: 16, color: colors.textPrimary }}>
-                     Selected Service
-                   </h3>
-                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, background: colors.primary, borderRadius: 8 }}>
-                       <span style={{ fontSize: 16, fontWeight: 600, color: colors.textPrimary }}>{selectedService.name}</span>
-                       <span style={{ fontSize: 14, color: colors.surface }}>{selectedService.subtype}</span>
-                     </div>
-                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, background: colors.secondary, borderRadius: 8 }}>
-                       <span style={{ fontSize: 16, fontWeight: 600, color: colors.textPrimary }}>${selectedService.price}</span>
-                       <span style={{ fontSize: 14, color: colors.textSecondary }}>{selectedService.duration} min</span>
-                     </div>
+<div style={{ marginTop: 20, padding: 16, background: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}` }}>
+                    <h3 style={{ fontSize: 18, marginBottom: 16, color: colors.textPrimary }}>
+                      Selected Service
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 14, background: 'linear-gradient(135deg, #fdfcd2 0%, #fffb99 100%)', borderRadius: 10 }}>
+                        <span style={{ fontSize: 16, fontWeight: 700, color: colors.secondary }}>{selectedService.name}</span>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: colors.secondary }}>{selectedService.duration} min</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 14, background: colors.secondary, borderRadius: 10 }}>
+                        <span style={{ fontSize: 20, fontWeight: 800, color: colors.primary }}>${selectedService.price}</span>
+                        <span style={{ fontSize: 14, color: colors.textSecondary }}>Total price</span>
+                      </div>
                       {/* Description is not in the current Service type, so we'll skip it for now */}
                       {/* 
                       {selectedService.description && (
@@ -237,9 +333,12 @@ export default function LocationPage() {
           </div>
 
           <div style={{ marginBottom: 24 }}>
-            <h3 style={{ fontSize: 18, marginBottom: 12, color: colors.textPrimary }}>
-              Select Date
-            </h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <Calendar size={18} stroke={colors.primary} />
+              <h3 style={{ fontSize: 18, margin: 0, color: colors.textPrimary }}>
+                Select Date
+              </h3>
+            </div>
             <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 8 }}>
               {dates.map((date) => {
                 const dateStr = format(date, 'yyyy-MM-dd');
@@ -252,10 +351,10 @@ export default function LocationPage() {
                       padding: 12,
                       borderRadius: 12,
                       background: selectedDate === dateStr ? colors.primary : colors.surface,
-                      color: selectedDate === dateStr ? colors.surface : colors.textPrimary,
+                      color: selectedDate === dateStr ? colors.secondary : colors.textPrimary,
                       textAlign: 'center',
                       cursor: 'pointer',
-                      border: `2px solid ${selectedDate === dateStr ? colors.primary : colors.secondary}`,
+                      border: `2px solid ${selectedDate === dateStr ? 'transparent' : colors.border}`,
                     }}
                   >
                     <div style={{ fontSize: 12, fontWeight: 600 }}>{format(date, 'EEE')}</div>
@@ -267,9 +366,12 @@ export default function LocationPage() {
           </div>
 
           <div style={{ marginBottom: 24 }}>
-            <h3 style={{ fontSize: 18, marginBottom: 12, color: colors.textPrimary }}>
-              Available Time Slots
-            </h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <Clock size={18} stroke={colors.primary} />
+              <h3 style={{ fontSize: 18, margin: 0, color: colors.textPrimary }}>
+                Available Time Slots
+              </h3>
+            </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {filteredSlots.length > 0 ? (
                 filteredSlots.map((slot) => (
@@ -288,9 +390,12 @@ export default function LocationPage() {
 
           {businessReviews.length > 0 && (
             <div>
-              <h3 style={{ fontSize: 18, marginBottom: 12, color: colors.textPrimary }}>
-                Reviews
-              </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <Star size={18} stroke={colors.primary} />
+                <h3 style={{ fontSize: 18, margin: 0, color: colors.textPrimary }}>
+                  Reviews
+                </h3>
+              </div>
               {businessReviews.map((review) => (
                 <ReviewCard key={review.id} review={review} />
               ))}
@@ -310,8 +415,9 @@ export default function LocationPage() {
           width: '100%',
           maxWidth: 480,
           padding: 16,
-          background: colors.surface,
-          borderTop: '1px solid ' + colors.secondary,
+          background: 'rgba(18, 18, 42, 0.98)',
+          backdropFilter: 'blur(20px)',
+          borderTop: `1px solid ${colors.border}`,
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -320,17 +426,35 @@ export default function LocationPage() {
       >
         <div>
           <span style={{ fontSize: 14, color: colors.textMuted }}>Total</span>
-          <div style={{ fontSize: 20, fontWeight: 600, color: colors.textPrimary }}>
+          <div style={{ fontSize: 20, fontWeight: 600, color: colors.primary }}>
             ${selectedService ? selectedService.price : '0'}
           </div>
         </div>
-        <Button
+        <button
           onClick={handleBook}
           disabled={!selectedTimeSlot || !selectedService}
-          style={{ padding: '12px 32px' }}
+          style={{
+            padding: '14px 28px',
+            borderRadius: 20,
+            border: 'none',
+            background: !selectedTimeSlot || !selectedService 
+              ? 'rgba(253, 252, 210, 0.3)' 
+              : 'linear-gradient(135deg, #fdfcd2 0%, #fffb99 100%)',
+            color: !selectedTimeSlot || !selectedService 
+              ? 'rgba(20, 7, 85, 0.5)' 
+              : colors.secondary,
+            fontWeight: 800,
+            fontSize: 14,
+            cursor: (!selectedTimeSlot || !selectedService) ? 'not-allowed' : 'pointer',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            boxShadow: (!selectedTimeSlot || !selectedService) 
+              ? 'none' 
+              : '0 4px 20px rgba(253, 252, 210, 0.3)',
+          }}
         >
           Book Now
-        </Button>
+        </button>
       </motion.div>
 
       {showAuthModal && (
@@ -346,15 +470,115 @@ export default function LocationPage() {
             className="bottom-sheet"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ marginBottom: 24, textAlign: 'center' }}>Sign In to Book</h3>
+            <h3 style={{ marginBottom: 24, textAlign: 'center', color: colors.textPrimary }}>Sign In to Book</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <Button onClick={() => router.push('/client/auth')} style={{ width: '100%' }}>
+              <button 
+                onClick={() => router.push('/client/auth')} 
+                style={{
+                  width: '100%',
+                  padding: '16px 28px',
+                  borderRadius: 20,
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #fdfcd2 0%, #fffb99 100%)',
+                  color: colors.secondary,
+                  fontWeight: 800,
+                  fontSize: 15,
+                  cursor: 'pointer',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                }}
+              >
                 Sign In
-              </Button>
-              <Button variant="secondary" onClick={() => router.push('/client/auth')} style={{ width: '100%' }}>
+              </button>
+              <button 
+                onClick={() => router.push('/client/auth')} 
+                style={{
+                  width: '100%',
+                  padding: '16px 28px',
+                  borderRadius: 20,
+                  border: `2px solid ${colors.border}`,
+                  background: 'transparent',
+                  color: colors.textPrimary,
+                  fontWeight: 700,
+                  fontSize: 15,
+                  cursor: 'pointer',
+                }}
+              >
                 Create Account
-              </Button>
+              </button>
             </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {showSuccessModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(10, 10, 26, 0.9)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 200,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+          }}
+        >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            style={{
+              background: colors.surface,
+              borderRadius: 24,
+              padding: 32,
+              maxWidth: 340,
+              width: '100%',
+              textAlign: 'center',
+              border: `1px solid ${colors.border}`,
+            }}
+          >
+            <div style={{
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #00e676 0%, #00c853 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+              boxShadow: '0 8px 32px rgba(0, 230, 118, 0.4)',
+            }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <h2 style={{ fontSize: 24, fontWeight: 800, color: colors.textPrimary, marginBottom: 12, fontFamily: 'Playfair Display, serif' }}>
+              Booking Confirmed!
+            </h2>
+            <p style={{ fontSize: 15, color: colors.textSecondary, marginBottom: 24, lineHeight: 1.5 }}>
+              Your appointment has been booked successfully. You can view your booking details in the bookings section.
+            </p>
+            <button
+              onClick={handleSuccessClose}
+              style={{
+                width: '100%',
+                padding: '16px 28px',
+                borderRadius: 20,
+                border: 'none',
+                background: 'linear-gradient(135deg, #fdfcd2 0%, #fffb99 100%)',
+                color: colors.secondary,
+                fontWeight: 800,
+                fontSize: 15,
+                cursor: 'pointer',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+              }}
+            >
+              View My Bookings
+            </button>
           </motion.div>
         </motion.div>
       )}

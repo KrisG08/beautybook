@@ -39,14 +39,30 @@
 
 * { box-sizing: border-box; }
 
+html {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 body {
   background: var(--background);
   color: var(--text-primary);
   font-family: 'DM Sans', sans-serif;
   min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@supports (padding: max(0px)) {
+  .container {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -56,9 +72,17 @@ h1, h2, h3, h4, h5, h6 {
 
 .container {
   max-width: 430px;
+  min-width: 280px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 16px;
   min-height: 100vh;
+  width: 100%;
+}
+
+@media (min-width: 431px) {
+  .container {
+    padding: 0 20px;
+  }
 }
 
 .btn-primary {
@@ -262,9 +286,9 @@ h1, h2, h3, h4, h5, h6 {
 
 .hero {
   background: linear-gradient(180deg, var(--secondary) 0%, var(--background) 100%);
-  border-radius: 0 0 48px 48px;
-  padding: 32px 24px 48px;
-  margin: -20px -20px 32px -20px;
+  border-radius: 0 0 32px 32px;
+  padding: 24px 20px 32px;
+  margin: 0 0 24px 0;
   position: relative;
   overflow: hidden;
 }
@@ -322,6 +346,30 @@ h1, h2, h3, h4, h5, h6 {
   transition: all 0.2s ease;
 }
 
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #fffb99;
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--surface);
+}
+
 .filter-chip:hover {
   border-color: var(--primary);
   background: rgba(253, 252, 210, 0.05);
@@ -337,20 +385,20 @@ h1, h2, h3, h4, h5, h6 {
 .business-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 28px;
+  border-radius: 20px;
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .business-card:hover {
-  transform: translateY(-6px);
-  border-color: var(--primary);
-  box-shadow: 0 20px 40px rgba(20, 7, 85, 0.4);
+  transform: translateY(-4px);
+  border-color: rgba(253, 252, 210, 0.4);
+  box-shadow: 0 16px 32px rgba(20, 7, 85, 0.35);
 }
 
 .business-image {
   width: 100%;
-  height: 160px;
+  height: 140px;
   object-fit: cover;
   position: relative;
 }
@@ -359,7 +407,7 @@ h1, h2, h3, h4, h5, h6 {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, var(--secondary) 0%, transparent 60%);
+  background: linear-gradient(180deg, transparent 40%, rgba(18, 18, 42, 0.9) 100%);
 }
 
 .availability-badge {

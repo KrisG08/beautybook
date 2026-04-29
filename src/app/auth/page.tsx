@@ -180,6 +180,24 @@ export default function AuthPage() {
         </button>
 
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{ marginBottom: 16 }}
+          >
+            <img 
+              src="/logolastminute.png" 
+              alt="LastMinute" 
+              style={{ 
+                width: 100,
+                height: 100,
+                borderRadius: 28,
+                objectFit: 'cover',
+                display: 'block',
+                margin: '0 auto 16px'
+              }}
+            />
+          </motion.div>
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

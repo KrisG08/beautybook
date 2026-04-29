@@ -52,6 +52,8 @@ model Service {
   id          String     @id @default(cuid())
   businessId  String
   name        String
+  category    String?
+  subtype     String?
   duration    Int        @default(30)
   price       Float
   description String?

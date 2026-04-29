@@ -11,7 +11,17 @@ export async function GET(request: NextRequest) {
   const businesses = await prisma.business.findMany({
     where, 
     orderBy: { createdAt: 'desc' },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      address: true,
+      description: true,
+      category: true,
+      rating: true,
+      reviewCount: true,
+      status: true,
+      imageUrl: true,
+      createdAt: true,
       services: {
         select: {
           price: true

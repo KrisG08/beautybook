@@ -17,16 +17,19 @@ import { useAuth } from '@/lib/authContext';
 import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from 'date-fns';
 
 const COLORS = {
-  primary: '#FFD600',
-  surface: '#FFF7E0',
-  background: '#FFFDF5',
-  textPrimary: '#2A241C',
-  textSecondary: '#6B6358',
-  textMuted: '#9A9595',
-  border: '#E8DDC7',
-  success: '#059669',
-  error: '#DC2626',
-  warning: '#D97706',
+  primary: '#fdfcd2',
+  secondary: '#140755',
+  accent: '#ff6b9d',
+  surface: '#12122a',
+  surfaceLight: '#1a1a3a',
+  background: '#0a0a1a',
+  textPrimary: '#fdfcd2',
+  textSecondary: '#b8b8d0',
+  textMuted: '#6a6a8a',
+  border: '#2a2a4a',
+  success: '#00e676',
+  error: '#ff5252',
+  warning: '#ffab40',
 };
 
 const TIME_SLOTS = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];

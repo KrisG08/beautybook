@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Calendar, Clock, MapPin, CheckCircle, XCircle } from 'lucide-react';
@@ -9,40 +9,71 @@ import { useStore } from '@/lib/store';
 import { format } from 'date-fns';
 
 const colors = {
-  primary: '#E8B4B8',
-  secondary: '#F5E6E8',
-  accent: '#C9A87C',
-  background: '#FFFBFA',
-  surface: '#FFFFFF',
-  textPrimary: '#2D2A2A',
-  textSecondary: '#6B6565',
-  textMuted: '#9A9595',
-  success: '#7CB98B',
-  error: '#E57373',
-  warning: '#FFB74D',
+  primary: '#fdfcd2',
+  secondary: '#140755',
+  accent: '#ff6b9d',
+  surface: '#12122a',
+  surfaceLight: '#1a1a3a',
+  background: '#0a0a1a',
+  textPrimary: '#fdfcd2',
+  textSecondary: '#b8b8d0',
+  textMuted: '#6a6a8a',
+  border: '#2a2a4a',
+  success: '#00e676',
+  error: '#ff5252',
+  warning: '#ffab40',
 };
 
 export default function ClientCalendar() {
   const router = useRouter();
-  const { bookings, businesses, services, timeSlots, currentUser } = useStore();
+  const { bookings, businesses, services, timeSlots, currentUser, updateBookingStatus } = useStore();
   const [activeTab, setActiveTab] = useState('upcoming');
+  const [hydratedUser, setHydratedUser] = useState<any>(null);
+  const [localBookings, setLocalBookings] = useState<any[]>([]);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [businessesList, setBusinessesList] = useState<any[]>([]);
+  const [servicesList, setServicesList] = useState<any[]>([]);
 
-  const userBookings = bookings.filter(b => b.userId === currentUser?.id);
-  
-  const now = new Date();
-  const pastBookings = userBookings.filter(b => {
-    const slot = timeSlots.find(s => s.id === b.slotId);
-    return slot && new Date(slot.date) < now;
-  });
-  const upcomingBookings = userBookings.filter(b => {
-    const slot = timeSlots.find(s => s.id === b.slotId);
-    return slot && new Date(slot.date) >= now;
-  });
-  const currentBookings = upcomingBookings.filter(b => b.status === 'confirmed');
+  useEffect(() => {
+    const stored = localStorage.getItem('user');
+    if (stored) {
+      try {
+        setHydratedUser(JSON.parse(stored));
+      } catch {}
+    }
+    
+    // Load bookings directly from localStorage
+    const storedBookings = localStorage.getItem('bookings');
+    if (storedBookings) {
+      try {
+        setLocalBookings(JSON.parse(storedBookings));
+      } catch {}
+    }
 
-  const displayBookings = activeTab === 'upcoming' ? upcomingBookings 
-    : activeTab === 'past' ? pastBookings 
-    : currentBookings;
+    // Load businesses from API
+    fetch('/api/data/businesses')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setBusinessesList(data);
+        }
+      })
+      .catch(() => {});
+
+    // Load all services
+    fetch('/api/data/services')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setServicesList(data);
+        }
+      })
+      .catch(() => {});
+  }, [refreshKey]);
+
+  const activeUser = currentUser || hydratedUser;
+  const userBookings = localBookings;
+  const displayBookings = userBookings.filter(b => b.status !== 'cancelled');
 
   return (
     <div className="container" style={{ paddingBottom: 80 }}>
@@ -88,9 +119,10 @@ export default function ClientCalendar() {
             </div>
           ) : (
             displayBookings.map((booking, index) => {
-              const business = businesses.find(b => b.id === booking.businessId);
-              const service = services.find(s => s.id === booking.serviceId);
-              const slot = timeSlots.find(s => s.id === booking.slotId);
+              const business = businessesList.find(b => b.id === booking.businessId);
+              const service = servicesList.find(s => s.id === booking.serviceId);
+              
+              console.log('Booking in calendar:', booking);
               
               return (
                 <motion.div
@@ -107,7 +139,7 @@ export default function ClientCalendar() {
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
                     <h3 style={{ fontSize: 16, fontWeight: 600, color: colors.textPrimary }}>
-                      {business?.name}
+                      {business?.name || 'Business #' + booking.businessId}
                     </h3>
                     <Badge variant={booking.status === 'confirmed' ? 'success' : booking.status === 'completed' ? 'success' : 'warning'}>
                       {booking.status}
@@ -117,21 +149,21 @@ export default function ClientCalendar() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                     <Calendar size={14} stroke={colors.textMuted} />
                     <span style={{ fontSize: 14, color: colors.textSecondary }}>
-                      {slot ? format(new Date(slot.date), 'EEE, MMM d, yyyy') : 'N/A'}
+                      {booking.date ? format(new Date(booking.date + 'T00:00:00'), 'EEE, MMM d, yyyy') : 'Date not set'}
                     </span>
                   </div>
                   
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                     <Clock size={14} stroke={colors.textMuted} />
                     <span style={{ fontSize: 14, color: colors.textSecondary }}>
-                      {slot ? `${slot.startTime} - ${slot.endTime}` : 'N/A'}
+                      {booking.time ? booking.time + ':00' : 'Time not set'}
                     </span>
                   </div>
                   
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                     <MapPin size={14} stroke={colors.textMuted} />
                     <span style={{ fontSize: 14, color: colors.textSecondary }}>
-                      {business?.address}
+                      {business?.address || 'Address not available'}
                     </span>
                   </div>
                   
@@ -139,15 +171,39 @@ export default function ClientCalendar() {
                     display: 'flex', 
                     justifyContent: 'space-between', 
                     paddingTop: 12,
-                    borderTop: '1px solid ' + colors.secondary 
+                    borderTop: `1px solid ${colors.border}`,
+                    alignItems: 'center'
                   }}>
                     <span style={{ fontSize: 14, color: colors.textSecondary }}>
-                      {service?.name}
+                      {booking.serviceName || service?.name || 'Service #' + booking.serviceId}
                     </span>
-                    <span style={{ fontSize: 16, fontWeight: 600, color: colors.primary }}>
-                      ${booking.totalPrice}
+                    <span style={{ fontSize: 16, fontWeight: 800, color: colors.primary }}>
+                      ${booking.totalPrice || service?.price || 0}
                     </span>
                   </div>
+                  
+                  {booking.status === 'confirmed' && (
+                    <button
+                      onClick={() => {
+                        updateBookingStatus(booking.id, 'cancelled');
+                        setRefreshKey(k => k + 1);
+                      }}
+                      style={{
+                        marginTop: 12,
+                        width: '100%',
+                        padding: '10px 16px',
+                        borderRadius: 12,
+                        border: '1px solid #ff5252',
+                        background: 'transparent',
+                        color: '#ff5252',
+                        fontWeight: 600,
+                        fontSize: 13,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Cancel Booking
+                    </button>
+                  )}
                 </motion.div>
               );
             })

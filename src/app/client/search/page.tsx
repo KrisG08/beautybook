@@ -2,20 +2,23 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation';
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { ClientBottomNav, BusinessCard, FilterChip } from '@/components/UI';
 import { format, addDays } from 'date-fns';
 
 const colors = {
-  primary: '#E8B4B8',
-  secondary: '#F5E6E8',
-  accent: '#C9A87C',
-  background: '#FFFBFA',
-  surface: '#FFFFFF',
-  textPrimary: '#2D2A2A',
-  textSecondary: '#6B6565',
-  textMuted: '#9A9595',
+  primary: '#fdfcd2',
+  secondary: '#140755',
+  accent: '#ff6b9d',
+  accent2: '#00d4ff',
+  surface: '#12122a',
+  surfaceLight: '#1a1a3a',
+  background: '#0a0a1a',
+  textPrimary: '#fdfcd2',
+  textSecondary: '#b8b8d0',
+  textMuted: '#6a6a8a',
+  border: '#2a2a4a',
 };
 
 const TIME_SLOTS = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
@@ -34,6 +37,7 @@ interface Business {
 
 export default function ClientSearch() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
@@ -41,6 +45,13 @@ export default function ClientSearch() {
   const [serviceType, setServiceType] = useState<string | null>(null);
   const [date, setDate] = useState<string | null>(null);
   const [time, setTime] = useState<string | null>(null);
+
+  useEffect(() => {
+    const category = searchParams.get('category');
+    if (category) {
+      setServiceType(category);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     async function fetchBusinesses() {
@@ -67,9 +78,12 @@ export default function ClientSearch() {
   const dates = Array.from({ length: 7 }, (_, i) => addDays(new Date(), i));
 
   const categories = [
-    { id: 'hair', name: 'Hair & Barber', emoji: '💇' },
+    { id: 'hair', name: 'Hair', emoji: '💇' },
     { id: 'nails', name: 'Nails', emoji: '💅' },
-    { id: 'aesthetic', name: 'Aesthetic', emoji: '✨' },
+    { id: 'skin', name: 'Skin', emoji: '✨' },
+    { id: 'massage', name: 'Massage', emoji: '💆' },
+    { id: 'makeup', name: 'Makeup', emoji: '💄' },
+    { id: 'brows', name: 'Brows', emoji: '👁️' },
   ];
 
   return (
@@ -90,10 +104,11 @@ export default function ClientSearch() {
               style={{
                 width: '100%',
                 padding: '12px 12px 12px 40px',
-                border: '2px solid ' + colors.secondary,
+                border: '2px solid ' + colors.border,
                 borderRadius: 12,
                 fontSize: 14,
                 background: colors.surface,
+                color: colors.textPrimary,
               }}
             />
           </div>
@@ -105,18 +120,51 @@ export default function ClientSearch() {
               height: 44,
               borderRadius: 12,
               background: serviceType ? colors.primary : colors.surface,
-              border: '2px solid ' + (serviceType ? colors.primary : colors.secondary),
+              border: '2px solid ' + (serviceType ? colors.primary : colors.border),
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
             }}
           >
-            <SlidersHorizontal size={20} stroke={serviceType ? colors.surface : colors.textMuted} />
+            <SlidersHorizontal size={20} stroke={serviceType ? colors.secondary : colors.textMuted} />
           </motion.div>
         </div>
 
         <AnimatePresence>
+          {serviceType && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 16px',
+                background: 'linear-gradient(135deg, rgba(253, 252, 210, 0.15) 0%, rgba(253, 252, 210, 0.05) 100%)',
+                borderRadius: 12,
+                marginBottom: 16,
+                border: '1px solid rgba(253, 252, 210, 0.3)',
+              }}
+            >
+              <span style={{ color: colors.primary, fontWeight: 600 }}>
+                🔍 Showing: {categories.find(c => c.id === serviceType)?.name || serviceType}
+              </span>
+              <button
+                onClick={() => setServiceType(null)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 4,
+                }}
+              >
+                <X size={18} stroke={colors.textMuted} />
+              </button>
+            </motion.div>
+          )}
+
           {showFilters && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
@@ -124,7 +172,7 @@ export default function ClientSearch() {
               exit={{ opacity: 0, height: 0 }}
               style={{ overflow: 'hidden' }}
             >
-              <div style={{ padding: 16, background: colors.surface, borderRadius: 16, marginBottom: 16 }}>
+              <div style={{ padding: 16, background: colors.surface, borderRadius: 16, marginBottom: 16, border: '1px solid ' + colors.border }}>
                 <div style={{ marginBottom: 20 }}>
                   <h4 style={{ fontSize: 14, marginBottom: 12, color: colors.textSecondary }}>Service Type</h4>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -177,12 +225,13 @@ export default function ClientSearch() {
                   whileTap={{ scale: 0.98 }}
                   style={{
                     width: '100%',
-                    padding: 12,
-                    background: colors.primary,
-                    color: colors.surface,
+                    padding: 14,
+                    background: 'linear-gradient(135deg, #fdfcd2 0%, #fffb99 100%)',
+                    color: colors.secondary,
                     border: 'none',
                     borderRadius: 12,
-                    fontWeight: 600,
+                    fontWeight: 700,
+                    fontSize: 14,
                     cursor: 'pointer',
                   }}
                 >

@@ -8,14 +8,17 @@ import { useAuth } from '@/lib/authContext';
 import { getAllBusinesses } from '@/lib/actions';
 
 const colors = {
-  primary: '#FFD600',
-  surface: '#FFF7E0',
-  background: '#FFFDF5',
-  textPrimary: '#2A241C',
-  textSecondary: '#6B6358',
-  textMuted: '#9A9595',
-  success: '#059669',
-  warning: '#D97706',
+  primary: '#fdfcd2',
+  secondary: '#140755',
+  accent: '#ff6b9d',
+  accent2: '#00d4ff',
+  surface: '#12122a',
+  surfaceLight: '#1a1a3a',
+  background: '#0a0a1a',
+  textPrimary: '#fdfcd2',
+  textSecondary: '#b8b8d0',
+  textMuted: '#6a6a8a',
+  border: '#2a2a4a',
 };
 
 export default function AdminHome() {
@@ -57,10 +60,10 @@ export default function AdminHome() {
   const pendingBusinesses = businesses.filter(b => b.status === 'pending').length;
   
   const menuItems = [
-    { id: 'businesses', label: 'Businesses', icon: Store, count: totalBusinesses, color: colors.primary, path: '/admin/businesses' },
-    { id: 'pending', label: 'Pending', icon: Store, count: pendingBusinesses, color: colors.warning, path: '/admin/businesses?status=pending' },
-    { id: 'users', label: 'Users', icon: Users, count: 156, color: colors.success, path: '/admin/users' },
-    { id: 'bookings', label: 'Bookings', icon: Calendar, count: 89, color: colors.warning, path: '/admin/bookings' },
+    { id: 'businesses', label: 'Businesses', icon: Store, count: totalBusinesses, color: colors.secondary, path: '/admin/businesses' },
+    { id: 'pending', label: 'Pending', icon: Store, count: pendingBusinesses, color: colors.secondary, path: '/admin/businesses?status=pending' },
+    { id: 'users', label: 'Users', icon: Users, count: 156, color: colors.secondary, path: '/admin/users' },
+    { id: 'bookings', label: 'Bookings', icon: Calendar, count: 89, color: colors.secondary, path: '/admin/bookings' },
   ];
 
   return (
@@ -72,28 +75,28 @@ export default function AdminHome() {
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 32 }}>
-          <div style={{ width: 64, height: 64, borderRadius: 16, background: colors.textPrimary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <DollarSign size={32} stroke={colors.primary} />
+          <div style={{ width: 64, height: 64, borderRadius: 16, background: 'linear-gradient(135deg, #fdfcd2 0%, #ffeb8a 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <DollarSign size={32} stroke={colors.secondary} />
           </div>
           <div>
-            <h1 style={{ fontSize: 24, color: colors.textPrimary }}>Admin Dashboard</h1>
+            <h1 style={{ fontSize: 24, color: colors.primary, fontWeight: 900 }}>Admin Dashboard</h1>
             <p style={{ fontSize: 14, color: colors.textMuted }}>Welcome, {user.name}</p>
           </div>
         </div>
 
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 32 }}>
-          <div style={{ background: 'white', borderRadius: 16, padding: 16, textAlign: 'center' }}>
-            <div style={{ fontSize: 24, fontWeight: 800, color: colors.primary }}>{totalBusinesses}</div>
-            <div style={{ fontSize: 12, color: colors.textMuted }}>Businesses</div>
+          <div style={{ background: 'linear-gradient(135deg, #fdfcd2 0%, #ffeb8a 100%)', borderRadius: 16, padding: 16, textAlign: 'center' }}>
+            <div style={{ fontSize: 24, fontWeight: 800, color: colors.secondary }}>{totalBusinesses}</div>
+            <div style={{ fontSize: 12, color: colors.secondary, opacity: 0.7 }}>Businesses</div>
           </div>
-          <div style={{ background: 'white', borderRadius: 16, padding: 16, textAlign: 'center' }}>
-            <div style={{ fontSize: 24, fontWeight: 800, color: colors.success }}>156</div>
-            <div style={{ fontSize: 12, color: colors.textMuted }}>Users</div>
+          <div style={{ background: 'linear-gradient(135deg, #fdfcd2 0%, #ffeb8a 100%)', borderRadius: 16, padding: 16, textAlign: 'center' }}>
+            <div style={{ fontSize: 24, fontWeight: 800, color: colors.secondary }}>156</div>
+            <div style={{ fontSize: 12, color: colors.secondary, opacity: 0.7 }}>Users</div>
           </div>
-          <div style={{ background: 'white', borderRadius: 16, padding: 16, textAlign: 'center' }}>
-            <div style={{ fontSize: 24, fontWeight: 800, color: colors.warning }}>89</div>
-            <div style={{ fontSize: 12, color: colors.textMuted }}>Bookings</div>
+          <div style={{ background: 'linear-gradient(135deg, #fdfcd2 0%, #ffeb8a 100%)', borderRadius: 16, padding: 16, textAlign: 'center' }}>
+            <div style={{ fontSize: 24, fontWeight: 800, color: colors.secondary }}>89</div>
+            <div style={{ fontSize: 12, color: colors.secondary, opacity: 0.7 }}>Bookings</div>
           </div>
         </div>
 
@@ -101,15 +104,15 @@ export default function AdminHome() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {menuItems.map((item) => (
             <motion.div key={item.id} onClick={() => router.push(item.path)} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{
-              display: 'flex', alignItems: 'center', gap: 16, padding: 20, background: 'white', borderRadius: 16, cursor: 'pointer',
-              boxShadow: '0 2px 12px rgba(0,0,0,0.06)'
+              display: 'flex', alignItems: 'center', gap: 16, padding: 20, background: 'linear-gradient(135deg, #fdfcd2 0%, #ffeb8a 100%)', borderRadius: 16, cursor: 'pointer',
+              boxShadow: '0 4px 20px rgba(253, 252, 210, 0.3)'
             }}>
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <item.icon size={24} stroke="white" />
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: colors.secondary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <item.icon size={24} stroke={colors.primary} />
               </div>
               <div style={{ flex: 1 }}>
-                <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>{item.label}</h3>
-                <p style={{ fontSize: 12, color: colors.textMuted, margin: 0 }}>{item.count} total</p>
+                <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: colors.secondary }}>{item.label}</h3>
+                <p style={{ fontSize: 12, color: colors.secondary, opacity: 0.7, margin: 0 }}>{item.count} total</p>
               </div>
             </motion.div>
           ))}

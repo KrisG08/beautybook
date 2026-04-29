@@ -72,6 +72,9 @@ export interface Booking {
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   totalPrice: number;
   createdAt: Date;
+  date?: string;
+  time?: string;
+  serviceName?: string;
 }
 
 export interface Review {

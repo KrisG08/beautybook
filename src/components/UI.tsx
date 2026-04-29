@@ -4,7 +4,8 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { 
   User, Store, Shield, Home, Search, Calendar, UserCircle, ArrowLeft,
-  Star, Clock, MapPin, ChevronRight, Scissors, Hand, Sparkles, Heart, Palette, CircleDollarSign
+  Star, Clock, MapPin, ChevronRight, Scissors, Hand, Sparkles, Heart, 
+  Palette, CircleDollarSign, Droplets, Gem, SprayCan, Accessibility, Eye
 } from 'lucide-react';
 
 const colors = {
@@ -21,13 +22,15 @@ const colors = {
 };
 
 const iconMap: Record<string, React.ComponentType<{ size?: number; stroke?: string; fill?: string }>> = {
-  Hair: ({ size, stroke }) => <svg width={size||24} height={size||24} viewBox="0 0 24 24" fill="none" stroke={stroke||'currentColor'} strokeWidth="2"><path d="M12 2c-4 0-7 3-7 7 0 2.5 1.5 4.5 3 5.5V22h8v-7.5c1.5-1 3-3 3-5.5 0-4-3-7-7-7z"/><path d="M12 2v3"/></svg>,
-  Nails: ({ size, stroke }) => <svg width={size||24} height={size||24} viewBox="0 0 24 24" fill="none" stroke={stroke||'currentColor'} strokeWidth="2"><path d="M2 20c0-3 2-6 5-6 1.5 0 3 .5 4 1.5"/><path d="M7 20c0-3 2-6 5-6 1.5 0 3 .5 4 1.5"/><path d="M12 20c0-3 2-6 5-6 1.5 0 3 .5 4 1.5"/><circle cx="19" cy="6" r="3"/></svg>,
-  Skin: ({ size, stroke }) => <svg width={size||24} height={size||24} viewBox="0 0 24 24" fill="none" stroke={stroke||'currentColor'} strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/><path d="M12 2a10 10 0 0 0 0 20"/><circle cx="12" cy="12" r="4"/></svg>,
-  Massage: ({ size, stroke }) => <svg width={size||24} height={size||24} viewBox="0 0 24 24" fill="none" stroke={stroke||'currentColor'} strokeWidth="2"><circle cx="12" cy="5" r="3"/><path d="M12 8v3"/><path d="M8 12c0 2 2 4 4 4s4-2 4-4"/><path d="M6 18c0 2 2 4 4 4h4c2 0 4-2 4-4"/><path d="M12 22v-3"/></svg>,
-  Sparkles: ({ size, stroke }) => <svg width={size||24} height={size||24} viewBox="0 0 24 24" fill="none" stroke={stroke||'currentColor'} strokeWidth="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>,
-  Heart: ({ size, stroke }) => <svg width={size||24} height={size||24} viewBox="0 0 24 24" fill="none" stroke={stroke||'currentColor'} strokeWidth="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>,
-  Palette: ({ size, stroke }) => <svg width={size||24} height={size||24} viewBox="0 0 24 24" fill="none" stroke={stroke||'currentColor'} strokeWidth="2"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.555C21.965 6.012 17.461 2 12 2z"/></svg>,
+  Hair: Scissors,
+  Nails: Hand,
+  Skin: Sparkles,
+  Massage: Heart,
+  Makeup: Palette,
+  Brows: Eye,
+  Aesthetic: Droplets,
+  Barber: Gem,
+  Spa: SprayCan,
 };
 
 export function ClientBottomNav({ active }: { active: string }) {
@@ -72,38 +75,105 @@ export function CategoryCard({ category, onClick }: { category: { id: string; na
   );
 }
 
-export function BusinessCard({ business, onClick }: { business: { id: string; name: string; address: string; rating: number; reviewCount: number; description: string; imageUrl?: string; serviceCount?: number; priceRange?: { min: number; max: number }; todaySlots?: number }; onClick: () => void }) {
+export function BusinessCard({ business, onClick }: { business: { id: string; name: string; address: string; rating: number; reviewCount: number; description: string; imageUrl?: string; serviceCount?: number; priceRange?: { min: number; max: number }; todaySlots?: number; category?: string }; onClick: () => void }) {
+  const categoryColors: Record<string, string> = {
+    hair: '#fdfcd2',
+    nails: '#ff6b9d',
+    skin: '#00d4ff',
+    massage: '#00e676',
+    makeup: '#ffab91',
+    brows: '#ce93d8',
+  };
+
+  const categoryNames: Record<string, string> = {
+    hair: 'Hair',
+    nails: 'Nails',
+    skin: 'Skin',
+    massage: 'Massage',
+    makeup: 'Makeup',
+    brows: 'Brows',
+  };
+
+  const categoryColor = business.category ? categoryColors[business.category] : colors.accent;
+  const categoryName = business.category ? categoryNames[business.category] : 'Beauty';
+
   return (
-    <motion.div onClick={onClick} whileHover={{ y: -4 }} whileTap={{ scale: 0.99 }} className="business-card" style={{ cursor: 'pointer' }}>
-      {business.imageUrl && <img src={business.imageUrl} alt={business.name} className="business-image" />}
-      <div style={{ padding: 18 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-          <h3 style={{ fontSize: 18, fontFamily: 'Playfair Display, serif', fontWeight: 800, margin: 0, color: colors.textPrimary }}>{business.name}</h3>
-          <div className="availability-badge">⚡ Available</div>
+    <motion.div onClick={onClick} whileHover={{ y: -4 }} whileTap={{ scale: 0.99 }} className="business-card" style={{ cursor: 'pointer', position: 'relative' }}>
+      {business.imageUrl ? (
+        <div style={{ position: 'relative' }}>
+          <img src={business.imageUrl} alt={business.name} className="business-image" />
+          <div style={{
+            position: 'absolute',
+            top: 12,
+            left: 12,
+            background: 'rgba(18, 18, 42, 0.85)',
+            backdropFilter: 'blur(8px)',
+            padding: '6px 12px',
+            borderRadius: 20,
+            border: `1px solid ${categoryColor}44`,
+          }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: categoryColor }}>{categoryName}</span>
+          </div>
+          <div style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            background: 'linear-gradient(135deg, #ff6b9d 0%, #ff8fab 100%)',
+            padding: '6px 10px',
+            borderRadius: 12,
+          }}>
+            <span style={{ fontSize: 10, fontWeight: 800, color: 'white' }}>⚡ Available</span>
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-          <Star size={14} fill={colors.primary} stroke={colors.primary} />
-          <span style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>{business.rating}</span>
-          <span style={{ fontSize: 12, color: colors.textMuted }}>({business.reviewCount})</span>
+      ) : (
+        <div style={{
+          width: '100%',
+          height: 140,
+          background: 'linear-gradient(135deg, #1a1a3a 0%, #12122a 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <span style={{ fontSize: 40 }}>💅</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <MapPin size={14} stroke={colors.textMuted} />
-          <span style={{ fontSize: 13, color: colors.textMuted }}>{business.address}</span>
+      )}
+      <div style={{ padding: 16 }}>
+        <h3 style={{ fontSize: 17, fontFamily: 'Playfair Display, serif', fontWeight: 800, margin: '0 0 10px 0', color: colors.textPrimary, lineHeight: 1.3 }}>{business.name}</h3>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Star size={13} fill={colors.primary} stroke={colors.primary} />
+            <span style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>{business.rating}</span>
+          </div>
+          <span style={{ fontSize: 12, color: colors.textMuted }}>({business.reviewCount} reviews)</span>
+        </div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+          <MapPin size={12} stroke={colors.textMuted} />
+          <span style={{ fontSize: 12, color: colors.textMuted, lineHeight: 1.4 }}>{business.address}</span>
         </div>
         
         {business.serviceCount !== undefined && (
-          <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${colors.border}` }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: colors.textSecondary }}>
-              <span>{business.serviceCount} services</span>
-              <span style={{ fontWeight: 700, color: colors.primary }}>{business.priceRange ? `$${business.priceRange.min} - $${business.priceRange.max}` : 'Pricing varies'}</span>
-            </div>
-          </div>
-        )}
-        
-        {business.todaySlots !== undefined && (
-          <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: colors.textSecondary }}>
-            <Clock size={14} stroke={colors.accent} />
-            <span>{business.todaySlots} slots today</span>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            paddingTop: 12, 
+            borderTop: `1px solid ${colors.border}` 
+          }}>
+            <span style={{ fontSize: 12, color: colors.textSecondary }}>
+              {business.serviceCount} services
+            </span>
+            <span style={{ 
+              fontSize: 13, 
+              fontWeight: 700, 
+              color: colors.primary,
+              background: 'rgba(253, 252, 210, 0.1)',
+              padding: '4px 10px',
+              borderRadius: 12,
+            }}>
+              From ${business.priceRange?.min || 25}
+            </span>
           </div>
         )}
       </div>

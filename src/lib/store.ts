@@ -36,7 +36,7 @@ interface AppState {
   rejectBusiness: (businessId: string) => void;
   addTimeSlot: (slot: Omit<TimeSlot, 'id'>) => void;
   updateBookingStatus: (bookingId: string, status: 'confirmed' | 'completed' | 'cancelled') => void;
-  createBooking: (userId: string, businessId: string, serviceId: string, slotId: string) => Booking;
+  createBooking: (userId: string, businessId: string, serviceId: string, slotId: string, selectedDate?: string, selectedTime?: string, price?: number, serviceName?: string) => Booking;
   addReview: (review: Omit<Review, 'id' | 'createdAt'>) => void;
   getAvailableSlots: (businessId: string, date: string) => TimeSlot[];
   getFilteredBusinesses: () => Business[];
@@ -286,13 +286,26 @@ const mockReviews: Review[] = [
   { id: 'r8', userId: 'u8', businessId: '18', userName: 'Daniela H.', rating: 4, comment: 'Beautiful styling!', createdAt: new Date('2024-06-02') },
 ];
 
+const getInitialBookings = (): Booking[] => {
+  if (typeof window === 'undefined') return [];
+  const stored = localStorage.getItem('bookings');
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch {
+      return [];
+    }
+  }
+  return [];
+};
+
 export const useStore = create<AppState>((set, get) => ({
   currentUser: null,
   users: [],
   businesses: mockBusinesses,
   services: mockServices,
   timeSlots: mockTimeSlots,
-  bookings: [],
+  bookings: getInitialBookings(),
   reviews: mockReviews,
   selectedCategory: null,
   selectedService: null,
@@ -300,72 +313,116 @@ export const useStore = create<AppState>((set, get) => ({
   selectedSlot: null,
   filters: { serviceType: null, subtype: null, date: null, time: null, priceRange: [0, 300] },
 
-  setCurrentUser: (user) => set({ currentUser: user }),
+  setCurrentUser: (user) => {
+    if (typeof window !== 'undefined') {
+      if (user) {
+        localStorage.setItem('user', JSON.stringify(user));
+      } else {
+        localStorage.removeItem('user');
+      }
+    }
+    set({ currentUser: user });
+  },
+
   setSelectedCategory: (category) => set({ selectedCategory: category }),
+
   setSelectedService: (service) => set({ selectedService: service }),
+
   setSelectedBusiness: (business) => set({ selectedBusiness: business }),
+
   setSelectedSlot: (slot) => set({ selectedSlot: slot }),
+
   setFilters: (filters) => set((state) => ({ filters: { ...state.filters, ...filters } })),
-  
+
   login: (email, password) => {
     const user = get().users.find(u => u.email === email);
     if (user && user.password === password) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('user', JSON.stringify(user));
+      }
       set({ currentUser: user });
       return true;
     }
     return false;
   },
-  
+
   register: (name, email, password, phone) => {
     const newUser: User = { id: generateId(), email, password, name, phone, role: 'client', createdAt: new Date() };
     set((state) => ({ users: [...state.users, newUser], currentUser: newUser }));
     return newUser;
   },
-  
-  logout: () => set({ currentUser: null }),
-  
+
+  logout: () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('user');
+    }
+    set({ currentUser: null });
+  },
+
   addBusiness: (business) => {
     const newBusiness: Business = { ...business, id: generateId(), status: 'pending', rating: 0, reviewCount: 0, createdAt: new Date() };
     set((state) => ({ businesses: [...state.businesses, newBusiness] }));
     return newBusiness;
   },
-  
+
   approveBusiness: (businessId) => {
     set((state) => ({ businesses: state.businesses.map(b => b.id === businessId ? { ...b, status: 'approved' as const } : b) }));
   },
-  
+
   rejectBusiness: (businessId) => {
     set((state) => ({ businesses: state.businesses.map(b => b.id === businessId ? { ...b, status: 'rejected' as const } : b) }));
   },
-  
+
   addTimeSlot: (slot) => {
     const newSlot: TimeSlot = { ...slot, id: generateId() };
     set((state) => ({ timeSlots: [...state.timeSlots, newSlot] }));
   },
-  
-  createBooking: (userId, businessId, serviceId, slotId) => {
-    const service = get().services.find(s => s.id === serviceId);
-    const booking: Booking = { id: generateId(), userId, businessId, serviceId, slotId, status: 'confirmed', totalPrice: service?.price || 0, createdAt: new Date() };
+
+  createBooking: (userId, businessId, serviceId, slotId, selectedDate, selectedTime, price, serviceName) => {
+    console.log('Store received:', { userId, businessId, serviceId, slotId, selectedDate, selectedTime, price, serviceName });
+    const booking: Booking & { date?: string; time?: string; serviceName?: string } = { 
+      id: generateId(), 
+      userId, 
+      businessId, 
+      serviceId, 
+      slotId, 
+      status: 'confirmed', 
+      totalPrice: price || 0, 
+      createdAt: new Date(),
+      date: selectedDate,
+      time: selectedTime,
+      serviceName: serviceName
+    };
+    console.log('Booking created:', booking);
+    const updatedBookings = [...get().bookings, booking];
     set((state) => ({
-      bookings: [...state.bookings, booking],
+      bookings: updatedBookings,
       timeSlots: state.timeSlots.map(s => s.id === slotId ? { ...s, available: false } : s),
     }));
+    // Persist to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('bookings', JSON.stringify(updatedBookings));
+    }
     return booking;
   },
-  
+
   updateBookingStatus: (bookingId, status) => {
-    set((state) => ({ bookings: state.bookings.map(b => b.id === bookingId ? { ...b, status } : b) }));
+    const updatedBookings = get().bookings.map(b => b.id === bookingId ? { ...b, status } : b);
+    set({ bookings: updatedBookings });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('bookings', JSON.stringify(updatedBookings));
+    }
   },
-  
+
   addReview: (review) => {
     const newReview: Review = { ...review, id: generateId(), createdAt: new Date() };
     set((state) => ({ reviews: [...state.reviews, newReview] }));
   },
-  
+
   getAvailableSlots: (businessId, date) => {
     return get().timeSlots.filter(s => s.businessId === businessId && s.date === date && s.available);
   },
-  
+
   getFilteredBusinesses: () => {
     const { filters, businesses } = get();
     return businesses.filter(b => {

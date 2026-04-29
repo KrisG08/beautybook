@@ -6,13 +6,16 @@ import { useRouter } from 'next/navigation';
 import { MapPin, Star, Clock } from 'lucide-react';
 
 const COLORS = {
-  primary: '#FFD600',
-  surface: '#FFF7E0',
-  background: '#FFFDF5',
-  textPrimary: '#2A241C',
-  textSecondary: '#6B6358',
-  textMuted: '#9A9595',
-  border: '#E8DDC7',
+  primary: '#fdfcd2',
+  secondary: '#140755',
+  accent: '#ff6b9d',
+  surface: '#12122a',
+  surfaceLight: '#1a1a3a',
+  background: '#0a0a1a',
+  textPrimary: '#fdfcd2',
+  textSecondary: '#b8b8d0',
+  textMuted: '#6a6a8a',
+  border: '#2a2a4a',
 };
 
 interface Business {
@@ -26,6 +29,9 @@ interface Business {
   reviewCount: number;
   status: string;
   imageUrl?: string;
+  serviceCount?: number;
+  priceRange?: { min: number; max: number };
+  todaySlots?: number;
 }
 
 export default function BusinessesPage() {
@@ -86,10 +92,11 @@ export default function BusinessesPage() {
                 transition={{ duration: 0.3, delay: index * 0.05 }}
                 onClick={() => router.push(`/client/location/${business.id}`)}
                 style={{
-                  background: 'white',
+                  background: COLORS.surface,
                   borderRadius: 16,
+                  border: `1px solid ${COLORS.border}`,
                   overflow: 'hidden',
-                  boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
                   cursor: 'pointer',
                 }}
               >
@@ -128,17 +135,36 @@ export default function BusinessesPage() {
                     {business.description}
                   </p>
                   
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                       <Star size={14} fill={COLORS.primary} stroke={COLORS.primary} />
-                      <span style={{ fontSize: 14, fontWeight: 600 }}>{business.rating.toFixed(1)}</span>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: COLORS.textPrimary }}>{business.rating.toFixed(1)}</span>
                       <span style={{ fontSize: 14, color: COLORS.textMuted }}>({business.reviewCount})</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Clock size={14} stroke={COLORS.textMuted} />
-                      <span style={{ fontSize: 14, color: COLORS.textMuted }}>Open today</span>
+                      <Clock size={14} stroke={COLORS.accent} />
+                      <span style={{ fontSize: 14, color: COLORS.textSecondary }}>
+                        {business.todaySlots ? `${business.todaySlots} slots` : 'Available'}
+                      </span>
                     </div>
                   </div>
+
+                  {business.priceRange && (
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      paddingTop: 12, 
+                      borderTop: `1px solid ${COLORS.border}`,
+                      fontSize: 13
+                    }}>
+                      <span style={{ color: COLORS.textSecondary }}>
+                        {business.serviceCount} services
+                      </span>
+                      <span style={{ fontWeight: 700, color: COLORS.primary }}>
+                        ${business.priceRange.min} - ${business.priceRange.max}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             ))}

@@ -7,15 +7,17 @@ import { ArrowLeft, DollarSign, Percent, Settings } from 'lucide-react';
 import { Button, Input } from '@/components/UI';
 
 const colors = {
-  primary: '#E8B4B8',
-  secondary: '#F5E6E8',
-  accent: '#C9A87C',
-  background: '#FFFBFA',
-  surface: '#FFFFFF',
-  textPrimary: '#2D2A2A',
-  textSecondary: '#6B6565',
-  textMuted: '#9A9595',
-  success: '#7CB98B',
+  primary: '#fdfcd2',
+  secondary: '#140755',
+  accent: '#ff6b9d',
+  surface: '#12122a',
+  surfaceLight: '#1a1a3a',
+  background: '#0a0a1a',
+  textPrimary: '#fdfcd2',
+  textSecondary: '#b8b8d0',
+  textMuted: '#6a6a8a',
+  border: '#2a2a4a',
+  success: '#00e676',
 };
 
 export default function AdminSettings() {

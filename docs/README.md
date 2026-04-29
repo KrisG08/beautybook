@@ -67,18 +67,6 @@
 
 ### Models
 
-#### User
-| Field | Type | Description |
-|------|------|-------------|
-| id | String (cuid) | Primary key |
-| name | String | User's name |
-| email | String | Unique email |
-| password | String | Bcrypt hashed |
-| phone | String? | Optional phone |
-| role | String | 'client', 'business', or 'admin' |
-| createdAt | DateTime | Creation timestamp |
-| updatedAt | DateTime | Last update |
-
 #### Business
 | Field | Type | Description |
 |------|------|-------------|
@@ -94,6 +82,8 @@
 | imageUrl | String? | Hero image URL |
 | status | String | 'pending', 'approved', or 'rejected' |
 | commission | Int | Commission percentage (default: 10) |
+| cost | Float | Hourly/service cost in BGN |
+| hours | String[] | Operating hours (e.g., ['09:00', '10:00']) |
 | rating | Float | Average rating |
 | reviewCount | Int | Number of reviews |
 | bankAccount | String? | Payment details |
@@ -120,6 +110,46 @@
 | startTime | String | Start time (HH:mm) |
 | endTime | String | End time (HH:mm) |
 | available | Boolean | Is slot available |
+
+#### User
+| Field | Type | Description |
+|------|------|-------------|
+| id | String (cuid) | Primary key |
+| name | String | User's name |
+| email | String | Unique email |
+| password | String | Bcrypt hashed |
+| phone | String? | Optional phone |
+| role | String | 'client', 'business', or 'admin' |
+| createdAt | DateTime | Creation timestamp |
+| updatedAt | DateTime | Last update |
+
+#### Booking
+| Field | Type | Description |
+|------|------|-------------|
+| id | String (cuid) | Primary key |
+| userId | String | Foreign key to User |
+| businessId | String | Foreign key to Business |
+| serviceId | String | Foreign key to Service |
+| slotId | String | Foreign key to TimeSlot |
+| status | String | 'confirmed', 'completed', 'cancelled' |
+| totalPrice | Float | Total price |
+| createdAt | DateTime | Creation timestamp |
+
+#### Review
+| Field | Type | Description |
+|------|------|-------------|
+| id | String (cuid) | Primary key |
+| userId | String | Foreign key to User |
+| businessId | String | Foreign key to Business |
+| rating | Int | Star rating (1-5) |
+| comment | String? | Review text |
+| createdAt | DateTime | Creation timestamp |
+
+#### Google Workspace API Integration (Businesses)
+For cost and hours management, integrate [Google Workspace Admin SDK Directory API](https://developers.google.com/workspace/docs/api/reference/rest) to:
+- Sync business operating hours (`hours` field) with Google Workspace Calendar
+- Validate business cost structures (`cost` field) against Google Sheets pricing sheets
+- Automate updates using Google Apps Script for commission calculations
 
 #### Booking
 | Field | Type | Description |
@@ -400,6 +430,23 @@ DATABASE_URL="file:./dev.db"
 - Card-based layouts with rounded-2xl corners (24px)
 - Yellow gradient image overlays
 - Large tap targets (min 44px)
+
+---
+
+## Mobile App Rearrangement
+
+### Key Mobile-First Adjustments
+- Converted desktop navigation to bottom tab navigation
+- Optimized touch targets for mobile (minimum 44px)
+- Simplified multi-step flows into mobile-friendly sequences
+- Adjusted form layouts for vertical scrolling
+- Improved responsiveness for mobile viewports
+
+### Mobile-Specific Features
+- Swipe gestures for navigation
+- Collapsible bottom sheets for filters/sort
+- Sticky action buttons on booking flow
+- Optimized keyboard handling for mobile inputs
 
 ---
 

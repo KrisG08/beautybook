@@ -153,8 +153,33 @@ export default function AuthPage() {
         return;
       }
       if (result.user) {
-        setAuthUser(result.user);
-        router.push(result.user.role === 'admin' ? '/admin' : result.user.role === 'business' ? '/business' : '/client');
+        const dbRole = result.user.role;
+        
+        // Validate selected role matches database role
+        if ((role === 'business' && dbRole !== 'business') || 
+            (role === 'admin' && dbRole !== 'admin') ||
+            (role === 'client' && dbRole !== 'client' && dbRole !== 'business' && dbRole !== 'admin')) {
+          setError(`This account is not registered as ${role}. Please select the correct role.`);
+          setLoading(false);
+          return;
+        }
+        
+        const userWithRole = {
+          id: result.user.id,
+          name: result.user.name,
+          email: result.user.email,
+          role: dbRole
+        };
+        setAuthUser(userWithRole);
+        localStorage.setItem('user', JSON.stringify(userWithRole));
+        
+        if (userWithRole.role === 'admin') {
+          router.push('/admin');
+        } else if (userWithRole.role === 'business') {
+          router.push('/business');
+        } else {
+          router.push('/client');
+        }
       }
     }
     setLoading(false);

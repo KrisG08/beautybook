@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { Search, TrendingUp } from 'lucide-react';
+import { Search, TrendingUp, Heart } from 'lucide-react';
 import { ClientBottomNav, CategoryCard, BusinessCard } from '@/components/UI';
 
 const colors = {
@@ -45,10 +45,23 @@ export default function ClientHome() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [favorites, setFavorites] = useState<string[]>([]);
 
   useEffect(() => {
     setMounted(true);
+    const storedFavs = localStorage.getItem('favorites');
+    if (storedFavs) {
+      setFavorites(JSON.parse(storedFavs));
+    }
   }, []);
+
+  const toggleFavorite = (businessId: string) => {
+    const newFavs = favorites.includes(businessId)
+      ? favorites.filter(id => id !== businessId)
+      : [...favorites, businessId];
+    setFavorites(newFavs);
+    localStorage.setItem('favorites', JSON.stringify(newFavs));
+  };
 
   useEffect(() => {
     if (!mounted) return;
@@ -127,57 +140,34 @@ export default function ClientHome() {
             </span>
           </motion.div>
 
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            style={{ 
-              fontSize: 28, 
-              fontFamily: 'Playfair Display, serif', 
-              marginBottom: 12, 
-              fontWeight: 900, 
-              lineHeight: 1.2,
-              color: '#140755',
-            }}
-          >
-            Find your <br />
-            <span style={{
-              background: 'linear-gradient(135deg, #140755 0%, #2a1a8a 50%, #3d2ab8 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}>perfect service</span>
-          </motion.h1>
-          
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="search-bar" 
-            onClick={() => router.push('/client/search')} 
-            style={{ cursor: 'pointer', marginTop: 16 }}
           >
-            <Search size={20} stroke={colors.textMuted} />
-            <span style={{ color: colors.primary, fontSize: 14 }}>Search services, salons...</span>
+            <div style={{ position: 'relative' }}>
+              <Search size={18} stroke={colors.textMuted} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)' }} />
+              <input
+                onClick={() => router.push('/client/search')}
+                readOnly
+                placeholder="Search services or businesses..."
+                style={{
+                  width: '100%',
+                  padding: '14px 14px 14px 46px',
+                  borderRadius: 16,
+                  border: 'none',
+                  background: 'rgba(20, 7, 85, 0.08)',
+                  fontSize: 14,
+                  color: colors.textMuted,
+                  cursor: 'pointer',
+                }}
+              />
+            </div>
           </motion.div>
         </div>
       </div>
 
-      <div style={{ padding: '20px 20px', maxWidth: 430, margin: '0 auto' }}>
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 20 }}
-        >
-          <div className="filter-chip active" onClick={() => router.push('/client/search')}>⚡ Available Now</div>
-          {CATEGORIES.map((cat) => (
-            <div key={cat.id} className="filter-chip" onClick={() => router.push(`/client/search?category=${cat.id}`)}>
-              {cat.name}
-            </div>
-          ))}
-        </motion.div>
-
+      <div style={{ padding: '0 20px', maxWidth: 430, margin: '0 auto' }}>
         <motion.h2 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -203,6 +193,39 @@ export default function ClientHome() {
           ))}
         </div>
 
+        {favorites.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, marginTop: 24 }}
+          >
+            <h2 style={{ fontSize: 18, fontFamily: 'Playfair Display, serif', fontWeight: 800 }}>
+              <Heart size={18} fill={colors.accent} stroke={colors.accent} style={{ marginRight: 6 }} /> Your Favorites
+            </h2>
+          </motion.div>
+        )}
+
+        {favorites.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 8 }}>
+            {businesses.filter(b => favorites.includes(b.id)).slice(0, 3).map((business, index) => (
+              <motion.div
+                key={business.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.75 + index * 0.1 }}
+              >
+                <BusinessCard
+                  business={business}
+                  onClick={() => router.push(`/client/location/${business.id}`)}
+                  isFavorite={favorites.includes(business.id)}
+                  onFavoriteClick={() => toggleFavorite(business.id)}
+                />
+              </motion.div>
+            ))}
+          </div>
+        )}
+
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -226,6 +249,8 @@ export default function ClientHome() {
               <BusinessCard
                 business={business}
                 onClick={() => router.push(`/client/location/${business.id}`)}
+                isFavorite={favorites.includes(business.id)}
+                onFavoriteClick={() => toggleFavorite(business.id)}
               />
             </motion.div>
           ))}
@@ -240,7 +265,7 @@ export default function ClientHome() {
           style={{
             marginTop: 24,
             padding: 20,
-            background: 'linear-gradient(135deg, var(--primary) 0%, #fffb99 100%)',
+            background: 'linear-gradient(135deg, #fdfcd2 0%, #fffb99 100%)',
             borderRadius: 24,
             textAlign: 'center',
             cursor: 'pointer',
@@ -248,7 +273,7 @@ export default function ClientHome() {
           }}
         >
           <p style={{ fontSize: 16, fontWeight: 900, fontFamily: 'Playfair Display, serif', color: colors.secondary }}>
-            ⚡ Book in 60 seconds
+            Book in 60 seconds
           </p>
           <p style={{ fontSize: 12, color: 'rgba(20, 7, 85, 0.7)', marginTop: 4, fontWeight: 600 }}>
             Tap to find available appointments

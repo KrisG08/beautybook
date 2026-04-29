@@ -95,7 +95,7 @@ export function CategoryCard({ category, onClick }: { category: { id: string; na
   );
 }
 
-export function BusinessCard({ business, onClick }: { business: { id: string; name: string; address: string; rating: number; reviewCount: number; description: string; imageUrl?: string; serviceCount?: number; priceRange?: { min: number; max: number }; todaySlots?: number; category?: string }; onClick: () => void }) {
+export function BusinessCard({ business, onClick, isFavorite, onFavoriteClick }: { business: { id: string; name: string; address: string; rating: number; reviewCount: number; description: string; imageUrl?: string; serviceCount?: number; priceRange?: { min: number; max: number }; todaySlots?: number; category?: string }; onClick: () => void; isFavorite?: boolean; onFavoriteClick?: () => void }) {
   const categoryColors: Record<string, string> = {
     hair: '#fdfcd2',
     nails: '#ff6b9d',
@@ -134,10 +134,31 @@ export function BusinessCard({ business, onClick }: { business: { id: string; na
           }}>
             <span style={{ fontSize: 11, fontWeight: 700, color: categoryColor }}>{categoryName}</span>
           </div>
+          {onFavoriteClick && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onFavoriteClick(); }}
+              style={{
+                position: 'absolute',
+                top: 12,
+                right: 12,
+                background: isFavorite ? '#ff6b9d' : 'rgba(18, 18, 42, 0.85)',
+                border: 'none',
+                borderRadius: '50%',
+                width: 36,
+                height: 36,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+              }}
+            >
+              <Heart size={18} fill={isFavorite ? '#fff' : 'none'} stroke={isFavorite ? '#fff' : '#fff'} />
+            </button>
+          )}
           <div style={{
             position: 'absolute',
-            top: 12,
-            right: 12,
+            bottom: 12,
+            left: 12,
             background: 'linear-gradient(135deg, #ff6b9d 0%, #ff8fab 100%)',
             padding: '6px 10px',
             borderRadius: 12,

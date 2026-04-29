@@ -46,6 +46,7 @@ model Business {
   bookings       Booking[]
   timeSlots      TimeSlot[]
   reviews       Review[]
+  notifications Notification[]
 }
 
 model Service {
@@ -101,5 +102,16 @@ model Review {
   createdAt   DateTime  @default(now())
   
   user        User      @relation(fields: [userId], references: [id])
+  business    Business  @relation(fields: [businessId], references: [id])
+}
+
+model Notification {
+  id          String    @id @default(cuid())
+  businessId  String
+  type        String
+  message     String
+  read        Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  
   business    Business  @relation(fields: [businessId], references: [id])
 }

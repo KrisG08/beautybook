@@ -44,6 +44,14 @@ export async function POST(request: NextRequest) {
 
     await prisma.timeSlot.update({ where: { id: slotId }, data: { available: false } });
 
+    await prisma.notification.create({
+      data: {
+        businessId,
+        type: 'booking',
+        message: `New booking for ${service?.name || 'service'}`,
+      },
+    });
+
     return NextResponse.json(booking);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to create booking' }, { status: 500 });

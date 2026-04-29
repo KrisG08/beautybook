@@ -75,6 +75,14 @@ interface Booking {
   slot: { date: string; startTime: string };
 }
 
+interface Notification {
+  id: string;
+  type: string;
+  message: string;
+  read: boolean;
+  createdAt: Date;
+}
+
 export default function BusinessDashboard() {
   const router = useRouter();
   const { user, logout } = useAuth();
@@ -83,6 +91,8 @@ export default function BusinessDashboard() {
   const [services, setServices] = useState<Service[]>([]);
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
 
@@ -135,6 +145,11 @@ export default function BusinessDashboard() {
         setServices(svcs || []);
         setTimeSlots(slots || []);
         setBookings(bks || []);
+        
+        const notifRes = await fetch(`/api/notifications?businessId=${biz.id}`);
+        const notifs = await notifRes.json();
+        setNotifications(notifs || []);
+        setUnreadCount((notifs || []).filter((n: Notification) => !n.read).length);
       }
     } catch (err) {
       console.error('Error loading data:', err);
@@ -516,21 +531,28 @@ export default function BusinessDashboard() {
         {/* ALERTS */}
         {activeTab === 'alerts' && (
           <div>
-            <h2 style={{ fontSize: 18, fontFamily: 'Playfair Display, serif', marginBottom: 16 }}>Real-time Alerts</h2>
-            {upcomingBookings.length > 0 ? (
+            <h2 style={{ fontSize: 18, fontFamily: 'Playfair Display, serif', marginBottom: 16 }}>Notifications</h2>
+            {notifications.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {upcomingBookings.map(booking => (
-                  <div key={booking.id} style={{
-                    background: '#D1FAE5', borderRadius: 16, padding: 16, border: '1px solid #6EE7B7'
+                {notifications.map(notif => (
+                  <div key={notif.id} style={{
+                    background: notif.read ? COLORS.surfaceLight : '#D1FAE5', 
+                    borderRadius: 16, 
+                    padding: 16, 
+                    border: notif.read ? `1px solid ${COLORS.border}` : '1px solid #6EE7B7',
+                    opacity: notif.read ? 0.7 : 1
                   }}>
-                    <strong>🔔 New Booking</strong>
-                    <div style={{ marginTop: 8 }}>{booking.user.name} booked {booking.service.name}</div>
-                    <div style={{ fontSize: 12, color: COLORS.textMuted }}>{booking.slot.date} at {booking.slot.startTime}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <strong>{notif.type === 'booking' ? '📅' : '⭐'} {notif.type === 'booking' ? 'Booking' : 'Review'}</strong>
+                      {!notif.read && <span style={{ background: COLORS.accent, borderRadius: 10, padding: '2px 8px', fontSize: 10 }}>NEW</span>}
+                    </div>
+                    <div style={{ marginTop: 8 }}>{notif.message}</div>
+                    <div style={{ fontSize: 12, color: COLORS.textMuted }}>{format(new Date(notif.createdAt), 'MMM d, HH:mm')}</div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p style={{ color: COLORS.textMuted }}>No new alerts</p>
+              <p style={{ color: COLORS.textMuted }}>No notifications yet</p>
             )}
           </div>
         )}

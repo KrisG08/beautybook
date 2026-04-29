@@ -23,6 +23,15 @@ export async function POST(request: NextRequest) {
     const review = await prisma.review.create({
       data: { userId, businessId, rating, comment },
     });
+
+    await prisma.notification.create({
+      data: {
+        businessId,
+        type: 'review',
+        message: `New ${rating}-star review: ${comment?.substring(0, 30) || 'No comment'}...`,
+      },
+    });
+
     return NextResponse.json(review);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to create review' }, { status: 500 });

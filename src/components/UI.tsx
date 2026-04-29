@@ -118,7 +118,7 @@ export function BusinessCard({ business, onClick, isFavorite, onFavoriteClick }:
   const categoryName = business.category ? categoryNames[business.category] : 'Beauty';
 
   return (
-    <motion.div onClick={onClick} whileHover={{ y: -4 }} whileTap={{ scale: 0.99 }} className="business-card" style={{ cursor: 'pointer', position: 'relative', overflow: 'hidden', borderRadius: 16 }}>>
+    <motion.div onClick={onClick} whileHover={{ y: -4 }} whileTap={{ scale: 0.99 }} className="business-card" style={{ cursor: 'pointer', position: 'relative', overflow: 'hidden', borderRadius: 16 }}>
       {business.imageUrl ? (
         <div style={{ position: 'relative', borderRadius: 8, overflow: 'hidden' }}>
           <img src={business.imageUrl} alt={business.name} className="business-image" />

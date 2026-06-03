@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Check, X, Search } from 'lucide-react';
+import { ArrowLeft, Check, X, Search, Trash2 } from 'lucide-react';
 import { Badge, TabButton } from '@/components/UI';
 
 const colors = {
@@ -43,6 +43,7 @@ export default function AdminBusinesses() {
         const res = await fetch('/api/data/businesses');
         const data = await res.json();
         setBusinesses(data);
+        console.log(`[ADMIN] Fetched ${data.length} businesses (${data.filter((b: any) => b.status === 'pending').length} pending)`);
       } catch (err) {
         console.error('Failed to fetch:', err);
       } finally {
@@ -50,6 +51,10 @@ export default function AdminBusinesses() {
       }
     }
     fetchBusinesses();
+    
+    // Real-time polling: refresh every 5 seconds
+    const interval = setInterval(fetchBusinesses, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const filteredBusinesses = businesses.filter(b => {
@@ -76,20 +81,35 @@ export default function AdminBusinesses() {
     }
   }
 
-  async function handleReject(id: string) {
-    try {
-      const res = await fetch(`/api/data/business?businessId=${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'rejected' }),
-      });
-      if (res.ok) {
-        setBusinesses(prev => prev.map(b => b.id === id ? { ...b, status: 'rejected' } : b));
+    async function handleReject(id: string) {
+      try {
+        const res = await fetch(`/api/data/business?businessId=${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'rejected' }),
+        });
+        if (res.ok) {
+          setBusinesses(prev => prev.map(b => b.id === id ? { ...b, status: 'rejected' } : b));
+        }
+      } catch (err) {
+        console.error('Failed to reject:', err);
       }
-    } catch (err) {
-      console.error('Failed to reject:', err);
     }
-} 
+
+    async function handleDelete(id: string) {
+      if (window?.confirm('Are you sure you want to delete this business? This action cannot be undone.')) {
+        try {
+          const res = await fetch(`/api/data/business?businessId=${id}`, {
+            method: 'DELETE',
+          });
+          if (res.ok) {
+            setBusinesses(prev => prev.filter(b => b.id !== id));
+          }
+        } catch (err) {
+          console.error('Failed to delete business:', err);
+        }
+      }
+    }
 
   return (
     <div className="container" style={{ paddingTop: 20, paddingBottom: 40 }}>
@@ -201,24 +221,35 @@ export default function AdminBusinesses() {
                 {business.address} • {business.email}
               </div>
 
-              {business.status === 'pending' && (
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button
-                    onClick={() => handleApprove(business.id)}
-                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 12, border: 'none', background: colors.success, color: 'white', fontWeight: 600, cursor: 'pointer' }}
-                  >
-                    <Check size={16} />
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => handleReject(business.id)}
-                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 12, border: 'none', background: colors.error, color: 'white', fontWeight: 600, cursor: 'pointer' }}
-                  >
-                    <X size={16} />
-                    Reject
-                  </button>
-                </div>
-              )}
+               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                 {business.status === 'pending' && (
+                   <>
+                     <button
+                       onClick={() => handleApprove(business.id)}
+                       style={{ flex: 1, minWidth: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 12, border: 'none', background: colors.success, color: 'white', fontWeight: 600, cursor: 'pointer' }}
+                     >
+                       <Check size={16} />
+                       Approve
+                     </button>
+                     <button
+                       onClick={() => handleReject(business.id)}
+                       style={{ flex: 1, minWidth: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 12, border: 'none', background: colors.error, color: 'white', fontWeight: 600, cursor: 'pointer' }}
+                     >
+                       <X size={16} />
+                       Reject
+                     </button>
+                   </>
+                 )}
+                 {(business.status === 'approved' || business.status === 'rejected') && (
+                   <button
+                     onClick={() => handleDelete(business.id)}
+                     style={{ flex: 1, minWidth: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 12, border: 'none', background: '#8e24aa', color: 'white', fontWeight: 600, cursor: 'pointer' }}
+                   >
+                     <Trash2 size={16} />
+                     Delete
+                   </button>
+                 )}
+               </div>
             </motion.div>
           ))}
         </div>

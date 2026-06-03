@@ -24,6 +24,8 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const { status, name, contactPerson, phone, email, address, description, category } = body;
     
+    console.log(`[BUSINESS PATCH] id=${businessId}, updates:`, JSON.stringify(body));
+    
     const data: any = {};
     if (status) data.status = status;
     if (name) data.name = name;
@@ -38,8 +40,12 @@ export async function PATCH(request: NextRequest) {
       where: { id: businessId },
       data,
     });
+    
+    console.log(`[BUSINESS PATCH] Updated: id=${business.id}, name=${business.name}, status=${business.status}`);
+    
     return NextResponse.json(business);
   } catch (error) {
+    console.error('[BUSINESS PATCH] ERROR:', error);
     return NextResponse.json({ error: 'Failed to update business' }, { status: 500 });
   }
 }

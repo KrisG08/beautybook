@@ -52,6 +52,10 @@ export default function AdminHome() {
       setBusinesses(data);
     }
     loadData();
+    
+    // Real-time polling: refresh every 10 seconds
+    const interval = setInterval(loadData, 10000);
+    return () => clearInterval(interval);
   }, [mounted]);
 
   if (!mounted || !user) return null;

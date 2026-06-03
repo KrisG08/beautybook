@@ -21,14 +21,68 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Missing businessId' }, { status: 400 });
     }
     
-    const { status } = await request.json();
+    const body = await request.json();
+    const { status, name, contactPerson, phone, email, address, description, category } = body;
+    
+    const data: any = {};
+    if (status) data.status = status;
+    if (name) data.name = name;
+    if (contactPerson) data.contactPerson = contactPerson;
+    if (phone) data.phone = phone;
+    if (email) data.email = email;
+    if (address) data.address = address;
+    if (description !== undefined) data.description = description;
+    if (category) data.category = category;
     
     const business = await prisma.business.update({
       where: { id: businessId },
-      data: { status },
+      data,
     });
     return NextResponse.json(business);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update business' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const businessId = searchParams.get('businessId');
+    
+    if (!businessId) {
+      return NextResponse.json({ error: 'Missing businessId' }, { status: 400 });
+    }
+    
+    // First delete related records to avoid foreign key constraint issues
+    // Delete in order of dependency
+    await prisma.notification.deleteMany({
+      where: { businessId }
+    });
+    
+    await prisma.review.deleteMany({
+      where: { businessId }
+    });
+    
+    await prisma.booking.deleteMany({
+      where: { businessId }
+    });
+    
+    await prisma.timeSlot.deleteMany({
+      where: { businessId }
+    });
+    
+    await prisma.service.deleteMany({
+      where: { businessId }
+    });
+    
+    // Finally delete the business
+    const business = await prisma.business.delete({
+      where: { id: businessId }
+    });
+    
+    return NextResponse.json({ success: true, business });
+  } catch (error) {
+    console.error('Delete business error:', error);
+    return NextResponse.json({ error: 'Failed to delete business' }, { status: 500 });
   }
 }

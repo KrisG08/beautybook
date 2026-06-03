@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { Search, TrendingUp, Heart } from 'lucide-react';
+import { Search, TrendingUp, Heart, Bell } from 'lucide-react';
 import { ClientBottomNav, CategoryCard, BusinessCard } from '@/components/UI';
 
 const colors = {
@@ -46,21 +46,77 @@ export default function ClientHome() {
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [user, setUser] = useState<any>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
 
   useEffect(() => {
     setMounted(true);
-    const storedFavs = localStorage.getItem('favorites');
-    if (storedFavs) {
-      setFavorites(JSON.parse(storedFavs));
+    const stored = localStorage.getItem('user');
+    if (stored) {
+      try {
+        const userData = JSON.parse(stored);
+        setUser(userData);
+        fetchFavorites(userData.id);
+      } catch {}
     }
   }, []);
 
-  const toggleFavorite = (businessId: string) => {
-    const newFavs = favorites.includes(businessId)
-      ? favorites.filter(id => id !== businessId)
-      : [...favorites, businessId];
-    setFavorites(newFavs);
-    localStorage.setItem('favorites', JSON.stringify(newFavs));
+  const fetchFavorites = async (userId: string) => {
+    try {
+      const res = await fetch(`/api/data/favorites?userId=${userId}`);
+      if (res.ok) {
+        const favs = await res.json();
+        setFavorites(favs.map((f: any) => f.businessId));
+      }
+    } catch {
+      const storedFavs = localStorage.getItem('favorites');
+      if (storedFavs) setFavorites(JSON.parse(storedFavs));
+    }
+  };
+
+  const fetchNotifications = async (userId: string) => {
+    try {
+      const res = await fetch(`/api/data/client-notifications?userId=${userId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data);
+        setUnreadCount(data.filter((n: any) => !n.read).length);
+      }
+    } catch {}
+  };
+
+  const markAllRead = async () => {
+    if (!user) return;
+    try {
+      await fetch('/api/data/client-notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id }),
+      });
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
+    } catch {}
+  };
+
+  const toggleFavorite = async (businessId: string) => {
+    if (!user) return;
+    const wasFavorite = favorites.includes(businessId);
+    setFavorites(prev => wasFavorite ? prev.filter(id => id !== businessId) : [...prev, businessId]);
+    try {
+      if (wasFavorite) {
+        await fetch(`/api/data/favorites?userId=${user.id}&businessId=${businessId}`, { method: 'DELETE' });
+      } else {
+        await fetch('/api/data/favorites', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.id, businessId }),
+        });
+      }
+    } catch (err) {
+      console.error('Failed to toggle favorite:', err);
+    }
   };
 
   useEffect(() => {
@@ -76,6 +132,14 @@ export default function ClientHome() {
       return;
     }
   }, [mounted]);
+
+  useEffect(() => {
+    if (user) {
+      fetchNotifications(user.id);
+      const interval = setInterval(() => fetchNotifications(user.id), 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -135,9 +199,50 @@ export default function ClientHome() {
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
+              flex: 1,
             }}>
               LASTMINUTE
             </span>
+            <motion.button
+              onClick={() => {
+                setShowNotifications(!showNotifications);
+                if (!showNotifications && unreadCount > 0) markAllRead();
+              }}
+              whileTap={{ scale: 0.9 }}
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 14,
+                background: showNotifications ? '#140755' : 'rgba(20, 7, 85, 0.08)',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                position: 'relative',
+              }}
+            >
+              <Bell size={22} stroke={showNotifications ? '#fdfcd2' : '#140755'} fill={unreadCount > 0 ? '#ff6b9d' : 'none'} />
+              {unreadCount > 0 && (
+                <div style={{
+                  position: 'absolute',
+                  top: -2,
+                  right: -2,
+                  width: 18,
+                  height: 18,
+                  borderRadius: '50%',
+                  background: '#ff6b9d',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 10,
+                  fontWeight: 800,
+                  color: 'white',
+                }}>
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </div>
+              )}
+            </motion.button>
           </motion.div>
 
           <motion.h1 
@@ -175,6 +280,55 @@ export default function ClientHome() {
           </motion.div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showNotifications && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            style={{
+              background: 'rgba(18, 18, 42, 0.98)',
+              borderBottom: '1px solid rgba(42, 42, 74, 0.5)',
+              overflow: 'hidden',
+            }}
+          >
+            <div style={{ padding: '16px 20px', maxWidth: 430, margin: '0 auto' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 800, color: '#fdfcd2', margin: 0 }}>Notifications</h3>
+                <span style={{ fontSize: 12, color: '#6a6a8a' }}>{notifications.length} total</span>
+              </div>
+              {notifications.length === 0 ? (
+                <p style={{ fontSize: 13, color: '#6a6a8a', textAlign: 'center', padding: 20 }}>No notifications yet</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 300, overflowY: 'auto' }}>
+                  {notifications.slice(0, 10).map((notif) => (
+                    <div
+                      key={notif.id}
+                      onClick={() => notif.actionUrl && router.push(notif.actionUrl)}
+                      style={{
+                        padding: 12,
+                        borderRadius: 12,
+                        background: notif.read ? 'rgba(26, 26, 58, 0.5)' : 'rgba(255, 107, 157, 0.1)',
+                        border: `1px solid ${notif.read ? '#2a2a4a' : '#ff6b9d44'}`,
+                        cursor: notif.actionUrl ? 'pointer' : 'default',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: notif.type === 'slot_available' ? '#00d4ff' : notif.type === 'favorite_update' ? '#ff6b9d' : '#fdfcd2' }}>
+                          {notif.title}
+                        </span>
+                        {!notif.read && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff6b9d' }} />}
+                      </div>
+                      <p style={{ fontSize: 12, color: '#b8b8d0', margin: 0, lineHeight: 1.4 }}>{notif.message}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div style={{ padding: '20px 20px', maxWidth: 430, margin: '0 auto' }}>
         <motion.div 

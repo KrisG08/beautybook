@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Star, MapPin, Clock, ChevronLeft, ChevronRight, Calendar, Scissors } from 'lucide-react';
+import { ArrowLeft, Star, MapPin, Clock, ChevronLeft, ChevronRight, Calendar, Scissors, CreditCard, Wallet, Heart, Bell, BellPlus, ListChecks, CheckCircle2 } from 'lucide-react';
 import { ClientBottomNav, Button, TimeSlotButton, ReviewCard } from '@/components/UI';
 import { useStore } from '@/lib/store';
 import { Business, TimeSlot, Review, Service } from '@/lib/types';
@@ -62,6 +62,17 @@ export default function LocationPage() {
   const [reviewText, setReviewText] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
   const [hydratedUser, setHydratedUser] = useState<User | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentType, setPaymentType] = useState<'card' | 'cash' | null>(null);
+  const [paymentMethods, setPaymentMethods] = useState<Array<{id: string; last4: string; brand: string | null; isDefault: boolean}>>([]);
+  const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isOnWaitlist, setIsOnWaitlist] = useState(false);
+  const [waitlistId, setWaitlistId] = useState<string | null>(null);
+  const [showWaitlistModal, setShowWaitlistModal] = useState(false);
+  const [waitlistTime, setWaitlistTime] = useState('09:00');
+  const [joiningWaitlist, setJoiningWaitlist] = useState(false);
+  const [waitlistSuccess, setWaitlistSuccess] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('user');
@@ -76,6 +87,127 @@ export default function LocationPage() {
   }, []);
 
   const activeUser = currentUser || hydratedUser;
+
+  useEffect(() => {
+    if (activeUser) {
+      fetchPaymentMethods();
+      checkFavoriteStatus();
+      checkWaitlistStatus();
+    }
+  }, [activeUser, params.id]);
+
+  const fetchPaymentMethods = async () => {
+    if (!activeUser) return;
+    setLoadingPaymentMethods(true);
+    try {
+      const res = await fetch(`/api/data/paymentMethods?userId=${activeUser.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setPaymentMethods(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch payment methods:', err);
+    } finally {
+      setLoadingPaymentMethods(false);
+    }
+  };
+
+  const checkFavoriteStatus = async () => {
+    if (!activeUser) return;
+    try {
+      const res = await fetch(`/api/data/favorites?userId=${activeUser.id}`);
+      if (res.ok) {
+        const favs = await res.json();
+        const isFav = favs.some((f: any) => f.businessId === params.id);
+        setIsFavorite(isFav);
+      }
+    } catch (err) {
+      console.error('Failed to check favorite:', err);
+    }
+  };
+
+  const toggleFavorite = async () => {
+    if (!activeUser) {
+      setShowAuthModal(true);
+      return;
+    }
+    try {
+      if (isFavorite) {
+        await fetch(`/api/data/favorites?userId=${activeUser.id}&businessId=${params.id}`, { method: 'DELETE' });
+        setIsFavorite(false);
+      } else {
+        await fetch('/api/data/favorites', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: activeUser.id, businessId: params.id }),
+        });
+        setIsFavorite(true);
+      }
+    } catch (err) {
+      console.error('Failed to toggle favorite:', err);
+    }
+  };
+
+  const checkWaitlistStatus = async () => {
+    if (!activeUser) return;
+    try {
+      const res = await fetch(`/api/data/waitlist?userId=${activeUser.id}`);
+      if (res.ok) {
+        const entries = await res.json();
+        const entry = entries.find((e: any) => e.businessId === params.id && e.status === 'waiting');
+        if (entry) {
+          setIsOnWaitlist(true);
+          setWaitlistId(entry.id);
+        } else {
+          setIsOnWaitlist(false);
+          setWaitlistId(null);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to check waitlist:', err);
+    }
+  };
+
+  const handleJoinWaitlist = async () => {
+    if (!activeUser || !selectedService || !business) return;
+    setJoiningWaitlist(true);
+    try {
+      const res = await fetch('/api/data/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: activeUser.id,
+          businessId: business.id,
+          serviceId: selectedService.id,
+          preferredDate: selectedDate,
+          preferredTime: waitlistTime,
+        }),
+      });
+      if (res.ok) {
+        const entry = await res.json();
+        setIsOnWaitlist(true);
+        setWaitlistId(entry.id);
+        setShowWaitlistModal(false);
+        setWaitlistSuccess(true);
+        setTimeout(() => setWaitlistSuccess(false), 3000);
+      }
+    } catch (err) {
+      console.error('Failed to join waitlist:', err);
+    } finally {
+      setJoiningWaitlist(false);
+    }
+  };
+
+  const handleLeaveWaitlist = async () => {
+    if (!waitlistId) return;
+    try {
+      await fetch(`/api/data/waitlist?entryId=${waitlistId}`, { method: 'DELETE' });
+      setIsOnWaitlist(false);
+      setWaitlistId(null);
+    } catch (err) {
+      console.error('Failed to leave waitlist:', err);
+    }
+  };
 
   useEffect(() => {
     async function fetchBusinessData() {
@@ -127,19 +259,7 @@ export default function LocationPage() {
       return;
     }
 
-    console.log('Creating booking with:', {
-      userId: activeUser.id,
-      businessId: business!.id,
-      serviceId: selectedService.id,
-      slotId: selectedTimeSlot.id,
-      selectedDate,
-      selectedTime: selectedTimeSlot.startTime,
-      price: selectedService.price,
-      serviceName: selectedService.name
-    });
-
-    createBooking(activeUser.id, business!.id, selectedService.id, selectedTimeSlot.id, selectedDate, selectedTimeSlot.startTime, selectedService.price, selectedService.name);
-    setShowSuccessModal(true);
+    setShowPaymentModal(true);
   };
 
   const handleSubmitReview = async () => {
@@ -243,9 +363,29 @@ export default function LocationPage() {
         <div style={{ padding: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
             <div style={{ flex: 1 }}>
-              <h1 style={{ fontSize: 26, marginBottom: 10, color: colors.textPrimary, fontFamily: 'Playfair Display, serif', fontWeight: 800 }}>
-                {business.name}
-              </h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <h1 style={{ fontSize: 26, marginBottom: 10, color: colors.textPrimary, fontFamily: 'Playfair Display, serif', fontWeight: 800, flex: 1 }}>
+                  {business.name}
+                </h1>
+                <motion.button
+                  onClick={toggleFavorite}
+                  whileTap={{ scale: 0.85 }}
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 14,
+                    background: isFavorite ? 'rgba(255, 107, 157, 0.2)' : colors.surface,
+                    border: `2px solid ${isFavorite ? colors.accent : colors.border}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Heart size={22} fill={isFavorite ? colors.accent : 'none'} stroke={isFavorite ? colors.accent : colors.textMuted} />
+                </motion.button>
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <div style={{ 
                   display: 'flex', 
@@ -421,7 +561,71 @@ export default function LocationPage() {
                   />
                 ))
               ) : (
-                <p style={{ color: colors.textMuted, fontSize: 14 }}>No available slots for {format(new Date(selectedDate), 'MMM d')}</p>
+                <div style={{ width: '100%' }}>
+                  <p style={{ color: colors.textMuted, fontSize: 14, marginBottom: 12 }}>No available slots for {format(new Date(selectedDate), 'MMM d')}</p>
+                  
+                  {selectedService && (
+                    <div style={{
+                      padding: 16,
+                      borderRadius: 16,
+                      background: 'linear-gradient(135deg, rgba(255, 107, 157, 0.1) 0%, rgba(0, 212, 255, 0.1) 100%)',
+                      border: `1px solid ${colors.accent}44`,
+                    }}>
+                      {isOnWaitlist ? (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <ListChecks size={20} stroke={colors.accent2} />
+                            <div>
+                              <p style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary, margin: 0 }}>You're on the waitlist</p>
+                              <p style={{ fontSize: 12, color: colors.textMuted, margin: 0 }}>We'll notify you when a slot opens</p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={handleLeaveWaitlist}
+                            style={{
+                              padding: '8px 14px',
+                              borderRadius: 10,
+                              border: `1px solid ${colors.accent}`,
+                              background: 'transparent',
+                              color: colors.accent,
+                              fontWeight: 600,
+                              fontSize: 12,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Leave
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                            <BellPlus size={20} stroke={colors.accent} />
+                            <div>
+                              <p style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary, margin: 0 }}>Join the Waitlist</p>
+                              <p style={{ fontSize: 12, color: colors.textMuted, margin: 0 }}>Get notified when a slot opens up</p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => activeUser ? setShowWaitlistModal(true) : setShowAuthModal(true)}
+                            style={{
+                              width: '100%',
+                              padding: '12px 20px',
+                              borderRadius: 12,
+                              border: 'none',
+                              background: 'linear-gradient(135deg, #ff6b9d 0%, #ff8fab 100%)',
+                              color: 'white',
+                              fontWeight: 700,
+                              fontSize: 14,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Join Waitlist
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -750,6 +954,285 @@ export default function LocationPage() {
           </motion.div>
         </motion.div>
       )}
+
+      {showPaymentModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(10, 10, 26, 0.9)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 200,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+          }}
+        >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            style={{
+              background: colors.surface,
+              borderRadius: 24,
+              padding: 32,
+              maxWidth: 340,
+              width: '100%',
+              textAlign: 'center',
+              border: `1px solid ${colors.border}`,
+            }}
+          >
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: colors.textPrimary, marginBottom: 8, fontFamily: 'Playfair Display, serif' }}>
+              Choose Payment Method
+            </h2>
+            <p style={{ fontSize: 14, color: colors.textMuted, marginBottom: 24 }}>
+              Total: <span style={{ fontWeight: 700, color: colors.primary }}>€{selectedService?.price}</span>
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
+              {paymentMethods.length > 0 && paymentMethods.map((method) => (
+                <motion.button
+                  key={method.id}
+                  onClick={() => {
+                    setPaymentType('card');
+                    setShowPaymentModal(false);
+                    createBooking(
+                      activeUser!.id,
+                      business!.id,
+                      selectedService!.id,
+                      selectedTimeSlot!.id,
+                      selectedDate,
+                      selectedTimeSlot!.startTime,
+                      selectedService!.price,
+                      selectedService!.name,
+                      'card'
+                    );
+                    setShowSuccessModal(true);
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: 16,
+                    borderRadius: 14,
+                    background: colors.surfaceLight,
+                    border: `2px solid ${colors.border}`,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <CreditCard size={20} stroke={colors.accent2} />
+                  <div style={{ textAlign: 'left', flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>
+                      {method.brand || 'Card'} •••• {method.last4}
+                    </div>
+                    <div style={{ fontSize: 11, color: colors.textMuted }}>
+                      {method.isDefault && <span style={{ marginRight: 8 }}>Default</span>}
+                    </div>
+                  </div>
+                </motion.button>
+              ))}
+
+              <motion.button
+                onClick={() => {
+                  setPaymentType('cash');
+                  setShowPaymentModal(false);
+                  createBooking(
+                    activeUser!.id,
+                    business!.id,
+                    selectedService!.id,
+                    selectedTimeSlot!.id,
+                    selectedDate,
+                    selectedTimeSlot!.startTime,
+                    selectedService!.price,
+                    selectedService!.name,
+                    'cash'
+                  );
+                  setShowSuccessModal(true);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: 16,
+                  borderRadius: 14,
+                  background: colors.surfaceLight,
+                  border: `2px solid ${colors.border}`,
+                  cursor: 'pointer',
+                }}
+              >
+                <Wallet size={20} stroke="#00e676" />
+                <div style={{ textAlign: 'left', flex: 1 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>Pay with Cash</div>
+                  <div style={{ fontSize: 11, color: colors.textMuted }}>Pay at the business</div>
+                </div>
+              </motion.button>
+            </div>
+
+            <button
+              onClick={() => {
+                setShowPaymentModal(false);
+                router.push('/client/payments');
+              }}
+              style={{
+                width: '100%',
+                padding: '12px 20px',
+                borderRadius: 14,
+                border: `2px solid ${colors.border}`,
+                background: 'transparent',
+                color: colors.textSecondary,
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: 'pointer',
+              }}
+            >
+              Manage Cards
+            </button>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {showWaitlistModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(10, 10, 26, 0.9)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 200,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+          }}
+        >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            style={{
+              background: colors.surface,
+              borderRadius: 24,
+              padding: 32,
+              maxWidth: 360,
+              width: '100%',
+              border: `1px solid ${colors.border}`,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+              <div style={{
+                width: 48,
+                height: 48,
+                borderRadius: 14,
+                background: 'linear-gradient(135deg, rgba(255, 107, 157, 0.2) 0%, rgba(0, 212, 255, 0.2) 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <Bell size={24} stroke={colors.accent} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 18, fontWeight: 800, color: colors.textPrimary, margin: 0, fontFamily: 'Playfair Display, serif' }}>Join Waitlist</h3>
+                <p style={{ fontSize: 12, color: colors.textMuted, margin: 0 }}>for {selectedService?.name}</p>
+              </div>
+            </div>
+
+            <p style={{ fontSize: 14, color: colors.textSecondary, lineHeight: 1.6, marginBottom: 20 }}>
+              We'll notify you as soon as a matching slot becomes available at <strong style={{ color: colors.textPrimary }}>{business?.name}</strong> on <strong style={{ color: colors.textPrimary }}>{format(new Date(selectedDate), 'MMM d, yyyy')}</strong>.
+            </p>
+
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: colors.textSecondary, display: 'block', marginBottom: 8 }}>
+                Preferred time (we'll look for slots around this time)
+              </label>
+              <select
+                value={waitlistTime}
+                onChange={(e) => setWaitlistTime(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: 12,
+                  border: `2px solid ${colors.border}`,
+                  background: colors.surfaceLight,
+                  color: colors.textPrimary,
+                  fontSize: 14,
+                  fontWeight: 600,
+                }}
+              >
+                {['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00'].map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                onClick={() => setShowWaitlistModal(false)}
+                style={{
+                  flex: 1,
+                  padding: '14px 20px',
+                  borderRadius: 14,
+                  border: `2px solid ${colors.border}`,
+                  background: 'transparent',
+                  color: colors.textSecondary,
+                  fontWeight: 700,
+                  fontSize: 14,
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleJoinWaitlist}
+                disabled={joiningWaitlist}
+                style={{
+                  flex: 1,
+                  padding: '14px 20px',
+                  borderRadius: 14,
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #ff6b9d 0%, #ff8fab 100%)',
+                  color: 'white',
+                  fontWeight: 700,
+                  fontSize: 14,
+                  cursor: joiningWaitlist ? 'not-allowed' : 'pointer',
+                  opacity: joiningWaitlist ? 0.6 : 1,
+                }}
+              >
+                {joiningWaitlist ? 'Joining...' : 'Join Waitlist'}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      <AnimatePresence>
+        {waitlistSuccess && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            style={{
+              position: 'fixed',
+              bottom: 100,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              padding: '14px 24px',
+              borderRadius: 16,
+              background: 'linear-gradient(135deg, #00e676 0%, #00c853 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              boxShadow: '0 8px 32px rgba(0, 230, 118, 0.4)',
+              zIndex: 300,
+            }}
+          >
+            <CheckCircle2 size={20} stroke="white" />
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'white' }}>Added to waitlist!</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

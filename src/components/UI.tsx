@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { 
@@ -37,17 +38,54 @@ const iconMap: Record<string, React.ComponentType<{ size?: number; stroke?: stri
 
 export function ClientBottomNav({ active }: { active: string }) {
   const router = useRouter();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('user');
+    if (stored) {
+      try {
+        const user = JSON.parse(stored);
+        if (user.role === 'client') {
+          fetch(`/api/data/client-notifications?userId=${user.id}`)
+            .then(res => res.ok ? res.json() : [])
+            .then(data => setUnreadCount(data.filter((n: any) => !n.read).length))
+            .catch(() => {});
+        }
+      } catch {}
+    }
+  }, []);
+
   const navItems = [
     { id: 'home', label: 'Discover', icon: Home, path: '/client' },
     { id: 'search', label: 'Search', icon: Search, path: '/client/search' },
     { id: 'calendar', label: 'Bookings', icon: Calendar, path: '/client/calendar' },
+    { id: 'notifications', label: 'Alerts', icon: Bell, path: '/client/notifications', badge: unreadCount },
     { id: 'account', label: 'Profile', icon: UserCircle, path: '/client/account' },
   ];
   return (
     <div className="bottom-nav">
       {navItems.map((item) => (
-        <div key={item.id} className={`nav-item ${active === item.id ? 'active' : ''}`} onClick={() => router.push(item.path)}>
+        <div key={item.id} className={`nav-item ${active === item.id ? 'active' : ''}`} onClick={() => router.push(item.path)} style={{ position: 'relative' }}>
           <item.icon size={22} strokeWidth={2} />
+          {'badge' in item && item.badge ? (
+            <div style={{
+              position: 'absolute',
+              top: -4,
+              right: -8,
+              width: 16,
+              height: 16,
+              borderRadius: '50%',
+              background: '#ff6b9d',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 9,
+              fontWeight: 800,
+              color: 'white',
+            }}>
+              {item.badge > 9 ? '9+' : item.badge}
+            </div>
+          ) : null}
           <span style={{ fontSize: 11, fontWeight: 600 }}>{item.label}</span>
         </div>
       ))}

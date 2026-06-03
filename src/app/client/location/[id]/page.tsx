@@ -71,6 +71,8 @@ export default function LocationPage() {
   const [waitlistId, setWaitlistId] = useState<string | null>(null);
   const [showWaitlistModal, setShowWaitlistModal] = useState(false);
   const [waitlistTime, setWaitlistTime] = useState('09:00');
+  const [waitlistDate, setWaitlistDate] = useState('');
+  const [selectedUnavailableSlot, setSelectedUnavailableSlot] = useState<TimeSlot | null>(null);
   const [joiningWaitlist, setJoiningWaitlist] = useState(false);
   const [waitlistSuccess, setWaitlistSuccess] = useState(false);
 
@@ -172,6 +174,8 @@ export default function LocationPage() {
     if (!activeUser || !selectedService || !business) return;
     setJoiningWaitlist(true);
     try {
+      const dateToUse = selectedUnavailableSlot ? selectedUnavailableSlot.date : waitlistDate || selectedDate;
+      const timeToUse = selectedUnavailableSlot ? selectedUnavailableSlot.startTime : waitlistTime;
       const res = await fetch('/api/data/waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -179,8 +183,8 @@ export default function LocationPage() {
           userId: activeUser.id,
           businessId: business.id,
           serviceId: selectedService.id,
-          preferredDate: selectedDate,
-          preferredTime: waitlistTime,
+          preferredDate: dateToUse,
+          preferredTime: timeToUse,
         }),
       });
       if (res.ok) {
@@ -188,6 +192,7 @@ export default function LocationPage() {
         setIsOnWaitlist(true);
         setWaitlistId(entry.id);
         setShowWaitlistModal(false);
+        setSelectedUnavailableSlot(null);
         setWaitlistSuccess(true);
         setTimeout(() => setWaitlistSuccess(false), 3000);
       }
@@ -246,6 +251,7 @@ export default function LocationPage() {
   }, [params.id]);
 
   const filteredSlots = availableSlots.filter(slot => slot.date === selectedDate && slot.available);
+  const allSlotsForDate = availableSlots.filter(slot => slot.date === selectedDate);
 
   const dates = Array.from({ length: 7 }, (_, i) => addDays(new Date(), i));
 
@@ -547,85 +553,70 @@ export default function LocationPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               <Clock size={18} stroke={colors.primary} />
               <h3 style={{ fontSize: 18, margin: 0, color: colors.textPrimary }}>
-                Available Time Slots
+                Time Slots for {format(new Date(selectedDate), 'MMM d, yyyy')}
               </h3>
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {filteredSlots.length > 0 ? (
-                filteredSlots.map((slot) => (
-                  <TimeSlotButton
+              {allSlotsForDate.length > 0 ? (
+                allSlotsForDate.map((slot) => (
+                  <button
                     key={slot.id}
-                    slot={slot}
-                    selected={selectedTimeSlot?.id === slot.id}
-                    onClick={() => setSelectedTimeSlot(slot)}
-                  />
+                    onClick={() => {
+                      if (slot.available) {
+                        setSelectedTimeSlot(slot);
+                      } else {
+                        if (!activeUser) { setShowAuthModal(true); return; }
+                        if (!selectedService) return;
+                        setSelectedUnavailableSlot(slot);
+                        setWaitlistTime(slot.startTime);
+                        setWaitlistDate(slot.date);
+                        setShowWaitlistModal(true);
+                      }
+                    }}
+                    style={{
+                      padding: '10px 16px',
+                      borderRadius: 10,
+                      border: `2px solid ${
+                        selectedTimeSlot?.id === slot.id
+                          ? colors.primary
+                          : slot.available
+                            ? colors.border
+                            : `${colors.accent}44`
+                      }`,
+                      background: selectedTimeSlot?.id === slot.id
+                        ? colors.primary
+                        : slot.available
+                          ? colors.surface
+                          : 'rgba(255, 107, 157, 0.08)',
+                      color: selectedTimeSlot?.id === slot.id
+                        ? colors.secondary
+                        : slot.available
+                          ? colors.textPrimary
+                          : colors.accent,
+                      fontWeight: 600,
+                      fontSize: 13,
+                      cursor: 'pointer',
+                      opacity: slot.available ? 1 : 0.8,
+                      position: 'relative',
+                    }}
+                  >
+                    {slot.startTime}
+                    {!slot.available && (
+                      <span style={{
+                        marginLeft: 6,
+                        fontSize: 9,
+                        fontWeight: 800,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                        opacity: 0.7,
+                      }}>
+                        BOOKED
+                      </span>
+                    )}
+                  </button>
                 ))
               ) : (
-                <div style={{ width: '100%' }}>
-                  <p style={{ color: colors.textMuted, fontSize: 14, marginBottom: 12 }}>No available slots for {format(new Date(selectedDate), 'MMM d')}</p>
-                  
-                  {selectedService && (
-                    <div style={{
-                      padding: 16,
-                      borderRadius: 16,
-                      background: 'linear-gradient(135deg, rgba(255, 107, 157, 0.1) 0%, rgba(0, 212, 255, 0.1) 100%)',
-                      border: `1px solid ${colors.accent}44`,
-                    }}>
-                      {isOnWaitlist ? (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <ListChecks size={20} stroke={colors.accent2} />
-                            <div>
-                              <p style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary, margin: 0 }}>You're on the waitlist</p>
-                              <p style={{ fontSize: 12, color: colors.textMuted, margin: 0 }}>We'll notify you when a slot opens</p>
-                            </div>
-                          </div>
-                          <button
-                            onClick={handleLeaveWaitlist}
-                            style={{
-                              padding: '8px 14px',
-                              borderRadius: 10,
-                              border: `1px solid ${colors.accent}`,
-                              background: 'transparent',
-                              color: colors.accent,
-                              fontWeight: 600,
-                              fontSize: 12,
-                              cursor: 'pointer',
-                            }}
-                          >
-                            Leave
-                          </button>
-                        </div>
-                      ) : (
-                        <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                            <BellPlus size={20} stroke={colors.accent} />
-                            <div>
-                              <p style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary, margin: 0 }}>Join the Waitlist</p>
-                              <p style={{ fontSize: 12, color: colors.textMuted, margin: 0 }}>Get notified when a slot opens up</p>
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => activeUser ? setShowWaitlistModal(true) : setShowAuthModal(true)}
-                            style={{
-                              width: '100%',
-                              padding: '12px 20px',
-                              borderRadius: 12,
-                              border: 'none',
-                              background: 'linear-gradient(135deg, #ff6b9d 0%, #ff8fab 100%)',
-                              color: 'white',
-                              fontWeight: 700,
-                              fontSize: 14,
-                              cursor: 'pointer',
-                            }}
-                          >
-                            Join Waitlist
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                <p style={{ color: colors.textMuted, fontSize: 14 }}>No slots for {format(new Date(selectedDate), 'MMM d')}</p>
               )}
             </div>
           </div>
@@ -1139,8 +1130,12 @@ export default function LocationPage() {
               </div>
             </div>
 
-            <p style={{ fontSize: 14, color: colors.textSecondary, lineHeight: 1.6, marginBottom: 20 }}>
-              We'll notify you as soon as a matching slot becomes available at <strong style={{ color: colors.textPrimary }}>{business?.name}</strong> on <strong style={{ color: colors.textPrimary }}>{format(new Date(selectedDate), 'MMM d, yyyy')}</strong>.
+            <p style={{ fontSize: 14, color: colors.textSecondary, lineHeight: 1.6, marginBottom: 16 }}>
+              The slot at <strong style={{ color: colors.primary }}>{selectedUnavailableSlot?.startTime}</strong> on <strong style={{ color: colors.primary }}>{selectedUnavailableSlot ? format(new Date(selectedUnavailableSlot.date), 'MMM d, yyyy') : format(new Date(selectedDate), 'MMM d, yyyy')}</strong> is booked. We'll notify you if it becomes available.
+            </p>
+
+            <p style={{ fontSize: 13, color: colors.textMuted, lineHeight: 1.5, marginBottom: 20 }}>
+              Or choose a different preferred time and we'll alert you when any matching slot opens at <strong style={{ color: colors.textSecondary }}>{business?.name}</strong>.
             </p>
 
             <div style={{ marginBottom: 20 }}>
@@ -1166,6 +1161,24 @@ export default function LocationPage() {
                 ))}
               </select>
             </div>
+
+            {selectedUnavailableSlot && (
+              <div style={{
+                padding: '10px 14px',
+                borderRadius: 10,
+                background: 'rgba(255, 107, 157, 0.1)',
+                border: `1px solid ${colors.accent}33`,
+                marginBottom: 20,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}>
+                <Clock size={14} stroke={colors.accent} />
+                <span style={{ fontSize: 13, color: colors.accent, fontWeight: 600 }}>
+                  Watching: {selectedUnavailableSlot.date} at {selectedUnavailableSlot.startTime}
+                </span>
+              </div>
+            )}
 
             <div style={{ display: 'flex', gap: 12 }}>
               <button
